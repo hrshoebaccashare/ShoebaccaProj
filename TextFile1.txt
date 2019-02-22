@@ -1,0 +1,889 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Globalization;
+using System.Reflection;
+using System.Linq;
+using System.Text;
+using PX.Common;
+using PX.Common.Collection;
+using PX.Common.Mail;
+using PX.Data;
+using PX.Objects.CS;
+using PX.Objects.CR;
+using PX.Objects.SO;
+using PX.Objects.GL;
+using PX.Objects.DR;
+using PX.Objects.PO;
+using PX.Objects.AP;
+using PX.Objects.CM;
+using PX.SM;
+using PX.TM;
+using PX.Objects.TX;
+using PX.Web.UI;
+using ItemStats = PX.Objects.IN.Overrides.INDocumentRelease.ItemStats;
+using PX.Objects.AR;
+using CRLocation = PX.Objects.CR.Standalone.Location;
+using PX.Objects;
+using PX.Objects.IN;
+
+namespace ShoebaccaProj
+{
+    public class CRCustomAttributeList<TReference> : PXSelectBase<CSAnswers>
+        where TReference : IBqlTable
+    {
+        internal HybridDictionary _ids = new HybridDictionary();
+
+        public CRCustomAttributeList(PXGraph graph)
+        {
+            _Graph = graph;
+            View = new PXView(graph, false,
+                new Select3<CSAnswers, OrderBy<Asc<CSAnswers.order>>>(),
+                new PXSelectDelegate(SelectDelegate));
+
+            _Graph.EnsureCachePersistence(typeof(CSAnswers));
+            PXDBAttributeAttribute.Activate(_Graph.Caches[typeof(TReference)]);
+            _Graph.FieldUpdating.AddHandler<CSAnswers.value>(FieldUpdatingHandler);
+            _Graph.FieldSelecting.AddHandler<CSAnswers.value>(FieldSelectingHandler);
+            _Graph.FieldSelecting.AddHandler<CSAnswers.isRequired>(IsRequiredSelectingHandler);
+            _Graph.FieldSelecting.AddHandler<CSAnswers.attributeID>(AttrFieldSelectingHandler);
+            _Graph.RowPersisting.AddHandler<CSAnswers>(RowPersistingHandler);
+            _Graph.RowPersisting.AddHandler<TReference>(ReferenceRowPersistingHandler);
+            _Graph.RowUpdating.AddHandler<TReference>(ReferenceRowUpdatingHandler);
+            _Graph.RowInserted.AddHandler<TReference>(RowInsertedHandler);
+        }
+
+        virtual protected IEnumerable SelectDelegate()
+        {
+
+            var row = GetCurrentRow();
+
+            foreach (CSAnswers item in SelectInternal(row))
+            {
+                var attr = CRAttribute.Attributes[item.AttributeID];
+                CRAttribute.Attribute duplicateAttr = attr;
+                duplicateAttr.Values.Clear();
+
+                if (PXSiteMap.IsPortal && duplicateAttr != null && duplicateAttr.IsInternal)
+                    continue;
+                yield return item;
+            }
+        }
+
+        //virtual protected IEnumerable SelectDelegate()
+        //{
+        //    //PXSelectBase<CSAttributeDetail> attrDetails = new PXSelect<CSAttributeDetail, Where<CSAttributeDetail.attributeID, Equal<Required<CSAttributeDetail.attributeID>>>>(_Graph);  // To fetch the selected Sales Categories
+        //    //PXSelectBase<INItemCategory> inSalesCategory = new PXSelect<INItemCategory, Where<INItemCategory.inventoryID, Equal<Required<INItemCategory.inventoryID>>>>(_Graph);   // To fetch the Sales category for the selected InventoryId.
+
+        //    var row = GetCurrentRow();
+
+        //    foreach (CSAnswers item in SelectInternal(row))
+        //    {
+        //        //To handle the below scenarios
+        //        // 1. when retriving the saved record of attributes the the id were shown instead of attribute discription.
+        //        //2. The changes to the sales category grid, should refresh attibute even before saving by using the values in caches.
+
+        //        var valuelist = new List<string>();  // List to hold the values which are added to the Attribute Value. This is used for eleminating duplicates
+
+        //        var attr = CRAttribute.Attributes[item.AttributeID];
+        //        CRAttribute.Attribute duplicateAttr = attr;    // creating new variable to add the filtered attribute values
+        //        duplicateAttr.Values.Clear();
+
+        //        // Filtering the Attribute value based on the Sales Category 
+
+        //        //foreach (PXDataRecord record in PXDatabase.SelectMulti<CSAttributeDetail>(
+        //        //               new PXDataField(typeof(CSAttributeDetail.attributeID).Name),
+        //        //               new PXDataField(typeof(CSAttributeDetail.valueID).Name),
+        //        //               new PXDataField(typeof(CSAttributeDetail.description).Name),
+        //        //               new PXDataField(typeof(CSAttributeDetail.disabled).Name),
+        //        //               new PXDataFieldOrder(typeof(CSAttributeDetail.attributeID).Name),
+        //        //               new PXDataFieldOrder(typeof(CSAttributeDetail.sortOrder).Name)))
+        //        //{
+        //        //    string id = record.GetString(0);
+        //        //    var value = record.GetValue(1);
+
+        //        //  if (item.AttributeID == id)    //Only for the Matching AttributeId
+        //        {
+        //            if (attr.ControlType == CSAttribute.Combo || attr.ControlType == CSAttribute.MultiSelectCombo)
+        //            {
+
+        //                List<string> salesCategories = new List<string>();  //List to hold the CategoryId which are added to the Sales Category. This is used for eleminating duplicates
+
+        //                foreach (INItemCategory SalesCategory in PXSelect<INItemCategory, Where<INItemCategory.inventoryID, Equal<Required<INItemCategory.inventoryID>>>>.Select(_Graph, row.ID))
+        //                {
+        //                    if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) != true)
+        //                    {
+        //                        salesCategories.Add(SalesCategory.CategoryID.ToString());
+        //                    }
+        //                }
+
+        //                foreach (INItemCategory SalesCategory in this._Graph.Views["Category"].Cache.Cached)
+        //                {
+        //                    PXEntryStatus status = this._Graph.Views["Category"].Cache.GetStatus(SalesCategory);
+
+        //                    if (status == PXEntryStatus.Inserted || status == PXEntryStatus.Notchanged)
+        //                    {
+        //                        if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) != true)
+        //                        {
+        //                            salesCategories.Add(SalesCategory.CategoryID.ToString());
+        //                        }
+        //                    }
+        //                    if (status == PXEntryStatus.Modified || status == PXEntryStatus.Updated)
+        //                    {
+        //                        if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) != true)
+        //                        {
+        //                            salesCategories.Add(SalesCategory.CategoryID.ToString());
+        //                        }
+        //                    }
+        //                    if (status == PXEntryStatus.Deleted || status == PXEntryStatus.InsertedDeleted)
+        //                    {
+        //                        if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) == true)
+        //                        {
+        //                            salesCategories.Remove(SalesCategory.CategoryID.ToString());
+        //                        }
+        //                    }
+        //                }
+
+
+        //                foreach (CSAttributeDetail detail in PXSelect<CSAttributeDetail, Where<CSAttributeDetail.attributeID, Equal<Required<CSAttributeDetail.attributeID>>>>.Select(_Graph, attr.ID.ToString()))
+        //                {
+        //                    CSAttributeDetailExt detailsExt = detail.GetExtension<CSAttributeDetailExt>();
+
+        //                    if (detailsExt != null)
+        //                    {
+        //                        if (detailsExt.UsrSBSalesCategories != null)
+        //                        {
+        //                            string[] attributeValCategories = detailsExt.UsrSBSalesCategories.Split(',');
+
+        //                            for (int i = 0; i < attributeValCategories.Length; i++)
+        //                            {
+        //                                for (int j = 0; j < salesCategories.Count; j++)
+        //                                {
+        //                                    if (salesCategories[j].ToString() == attributeValCategories[i].ToString())
+        //                                    {
+        //                                        //if (value.ToString() == detail.ValueID.ToString())
+        //                                        //{
+        //                                        //    if (valuelist.Contains(value.ToString()) != true)
+        //                                        //    {
+        //                                        //        duplicateAttr.AddValue(new CRAttribute.AttributeValue(record));
+        //                                        //    }
+        //                                        //    valuelist.Add(value.ToString());
+        //                                        //}
+
+        //                                        valuelist.Add(detail.ValueID.ToString());
+        //                                    }
+        //                                }
+        //                            }
+        //                        }
+        //                    }
+
+        //                    if (this._Graph.Views["Category"].Cache.Current == null)
+        //                    {
+        //                        if (item.Value != null)
+        //                        {
+        //                            string[] val = item.Value.Split(',');
+
+        //                            for (int i = 0; i < val.Length; i++)
+        //                            {
+
+        //                                valuelist.Add(detail.ValueID.ToString());
+
+        //                                //if (val[i].ToString() == value.ToString())
+        //                                //{
+        //                                //    if (valuelist.Contains(value.ToString()) != true)
+        //                                //    {
+        //                                //        duplicateAttr.AddValue(new CRAttribute.AttributeValue(record));
+        //                                //    }
+        //                                //    valuelist.Add(value.ToString());
+        //                                //}
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        //    }
+        //        if (PXSiteMap.IsPortal && duplicateAttr != null && duplicateAttr.IsInternal)
+        //            continue;
+        //        yield return item;
+        //    }
+        //}
+
+
+
+        protected virtual string GetDefaultAnswerValue(CRAttribute.AttributeExt attr)
+        {
+            return attr.DefaultValue;
+        }
+
+        protected Guid? GetNoteId(object row)
+        {
+            return _helper.GetEntityNoteID(row);
+        }
+
+        private Type GetClassIdField(object row)
+        {
+            if (row == null)
+                return null;
+
+
+            var fieldAttribute =
+                _Graph.Caches[row.GetType()].GetAttributes(row, null)
+                    .OfType<CRAttributesFieldAttribute>()
+                    .FirstOrDefault();
+
+            if (fieldAttribute == null)
+                return null;
+
+            return fieldAttribute.ClassIdField;
+        }
+
+        private string GetClassId(object row)
+        {
+            var classIdField = GetClassIdField(row);
+            if (classIdField == null)
+                return null;
+
+            var entityCache = _Graph.Caches[row.GetType()];
+
+            var classIdValue = entityCache.GetValue(row, classIdField.Name);
+
+            return classIdValue == null ? null : classIdValue.ToString();
+        }
+
+        private Type GetEntityTypeFromAttribute(object row)
+        {
+            var classIdField = GetClassIdField(row);
+            if (classIdField == null)
+                return null;
+
+            return classIdField.DeclaringType;
+        }
+
+        // -----------------Deprecated Interface IAttributeSupport -------------------
+
+        //protected IEnumerable<CSAnswers> SelectInternal(IAttributeSupport row)
+        //{
+        //    var cache = _Graph.Caches[typeof(CSAnswers)];
+        //    var map = new HybridDictionary();
+
+        //    if (row != null)
+        //    {
+        //        if (row.ID > 0)
+        //        {
+        //            foreach (CSAnswers answer in
+        //                PXSelect<CSAnswers,
+        //                            Where<CSAnswers.entityType, Equal<Required<CSAnswers.entityType>>,
+        //                              And<CSAnswers.entityID, Equal<Required<CSAnswers.entityID>>>>>.Select(_Graph, row.EntityType, row.ID))
+        //            {
+        //                map[answer.AttributeID] = answer;
+        //            }
+        //        }
+
+        //        else if (row.ID < 0)
+        //        {
+        //            foreach (CSAnswers answer in cache.Inserted)
+        //            {
+        //                if (answer.EntityType == row.EntityType && answer.EntityID == row.ID)
+        //                {
+        //                    map[answer.AttributeID] = answer;
+        //                }
+        //            }
+        //        }
+
+        //        short maxOrder = 0;
+        //        var cacheOldDirty = cache.IsDirty;
+        //        var mainAttributes = new List<string>();
+        //        if (row.ClassID != null)
+        //            foreach (var attr in CRAttribute.EntityAttributes(row.EntityType, row.ClassID))
+        //            {
+        //                mainAttributes.Add(attr.ID);
+        //                CSAnswers answer;
+
+        //                if (map.Contains(attr.ID))
+        //                {
+        //                    answer = (CSAnswers)map[attr.ID];
+        //                }
+        //                else
+        //                {
+        //                    answer = (CSAnswers)cache.CreateInstance();
+        //                    answer.AttributeID = attr.ID;
+        //                    answer.EntityID = row.ID;
+        //                    answer.EntityType = row.EntityType;
+        //                    answer.Value = GetDefaultAnswerValue(attr);
+        //                    if (attr.ControlType == CSAttribute.CheckBox)
+        //                    {
+        //                        bool value;
+        //                        if (bool.TryParse(answer.Value, out value))
+        //                            answer.Value = Convert.ToInt32(value).ToString(CultureInfo.InvariantCulture);
+        //                        else if (answer.Value == null)
+        //                            answer.Value = 0.ToString();
+        //                    }
+        //                    answer = (CSAnswers)(cache.Insert(answer) ?? cache.Locate(answer));
+        //                }
+
+        //                if (answer.IsRequired == null || attr.Required != answer.IsRequired)
+        //                {
+        //                    answer.IsRequired = null;
+        //                    PXFieldState state =
+        //                        this.View.Cache.GetValueExt<CSAnswers.isRequired>(answer) as PXFieldState;
+        //                    if (state != null)
+        //                        answer.IsRequired = state.Value as bool?;
+        //                }
+        //                answer.Order = maxOrder++;
+        //                map[attr.ID] = answer;
+        //            }
+
+        //        var keys = new object[map.Count];
+        //        map.Keys.CopyTo(keys, 0);
+        //        foreach (object key in keys)
+        //        {
+        //            if (mainAttributes.Contains((string)key)) continue;
+
+        //            CSAnswers att = (CSAnswers)map[key];
+
+        //            if (string.IsNullOrEmpty(att.Value))
+        //            {
+        //                map.Remove(key);
+        //                cache.Delete(att);
+        //            }
+        //            else
+        //            {
+        //                att.IsRequired = false;
+        //            }
+        //        }
+        //        cache.IsDirty = cacheOldDirty;
+
+        //        foreach (DictionaryEntry item in map)
+        //        {
+
+        //            var answer = item.Value as CSAnswers;
+        //            if (answer == null || answer.Order != null) continue;
+
+        //            maxOrder++;
+        //            answer.Order = maxOrder;
+        //        }
+        //    }
+
+        //    List<CSAnswers> ret = new List<CSAnswers>();
+        //    foreach (DictionaryEntry item in map)
+        //    {
+        //        ret.Add(item.Value as CSAnswers);
+        //    }
+        //    return ret;
+        //}
+
+
+        protected IEnumerable<CSAnswers> SelectInternal(object row)
+        {
+            if (row == null)
+                yield break;
+
+            var noteId = GetNoteId(row);
+
+            if (!noteId.HasValue)
+                yield break;
+
+            var answerCache = _Graph.Caches[typeof(CSAnswers)];
+            var entityCache = _Graph.Caches[row.GetType()];
+
+            List<CSAnswers> answerList;
+
+            var status = entityCache.GetStatus(row);
+
+            if (status == PXEntryStatus.Inserted || status == PXEntryStatus.InsertedDeleted)
+            {
+                answerList = answerCache.Inserted.Cast<CSAnswers>().Where(x => x.RefNoteID == noteId).ToList();
+            }
+            else
+            {
+                answerList = PXSelect<CSAnswers, Where<CSAnswers.refNoteID, Equal<Required<CSAnswers.refNoteID>>>>
+                    .Select(_Graph, noteId).FirstTableItems.ToList();
+            }
+
+            var classId = GetClassId(row);
+
+            CRAttribute.ClassAttributeList classAttributeList = new CRAttribute.ClassAttributeList();
+
+            if (classId != null)
+            {
+                classAttributeList = CRAttribute.EntityAttributes(GetEntityTypeFromAttribute(row), classId);
+            }
+            //when coming from Import scenarios there might be attributes which don't belong to entity's current attribute class or the entity might not have any attribute class at all
+            if (_Graph.IsImport && PXView.SortColumns.Any() && PXView.Searches.Any())
+            {
+                var columnIndex = Array.FindIndex(PXView.SortColumns,
+                    x => x.Equals(typeof(CSAnswers.attributeID).Name, StringComparison.OrdinalIgnoreCase));
+
+                if (columnIndex >= 0 && columnIndex < PXView.Searches.Length)
+                {
+                    var searchValue = PXView.Searches[columnIndex];
+
+                    if (searchValue != null)
+                    {
+                        //searchValue can be either AttributeId or Description
+                        var attributeDefinition = CRAttribute.Attributes[searchValue.ToString()] ??
+                                             CRAttribute.AttributesByDescr[searchValue.ToString()];
+
+                        if (attributeDefinition == null)
+                        {
+                            throw new PXSetPropertyException(PX.Objects.CR.Messages.AttributeNotValid);
+                        }
+                        //avoid duplicates
+                        else if (classAttributeList[attributeDefinition.ToString()] == null)
+                        {
+                            classAttributeList.Add(new CRAttribute.AttributeExt(attributeDefinition, null, false));
+                        }
+                    }
+                }
+            }
+
+            if (answerList.Count == 0 && classAttributeList.Count == 0)
+                yield break;
+
+            //attribute identifiers that are contained in CSAnswers cache/table but not in class attribute list
+            List<string> attributeIdListAnswers =
+                answerList.Select(x => x.AttributeID)
+                    .Except(classAttributeList.Select(x => x.ID))
+                    .Distinct()
+                    .ToList();
+
+            //attribute identifiers that are contained in class attribute list but not in CSAnswers cache/table
+            List<string> attributeIdListClass =
+                classAttributeList.Select(x => x.ID)
+                    .Except(answerList.Select(x => x.AttributeID))
+                    .ToList();
+
+            //attribute identifiers which belong to both lists
+            List<string> attributeIdListIntersection =
+                classAttributeList.Select(x => x.ID)
+                    .Intersect(answerList.Select(x => x.AttributeID))
+                    .Distinct()
+                    .ToList();
+
+
+            var cacheIsDirty = answerCache.IsDirty;
+
+            List<CSAnswers> output = new List<CSAnswers>();
+
+            //attributes contained only in CSAnswers cache/table should be added "as is"
+            output.AddRange(answerList.Where(x => attributeIdListAnswers.Contains(x.AttributeID)));
+
+            //attributes contained only in class attribute list should be created and initialized with default value
+            foreach (var attributeId in attributeIdListClass)
+            {
+                var classAttributeDefinition = classAttributeList[attributeId];
+
+                if (PXSiteMap.IsPortal && classAttributeDefinition.IsInternal)
+                    continue;
+
+                CSAnswers answer = (CSAnswers)answerCache.CreateInstance();
+                answer.AttributeID = classAttributeDefinition.ID;
+                answer.RefNoteID = noteId;
+                answer.Value = GetDefaultAnswerValue(classAttributeDefinition);
+                if (classAttributeDefinition.ControlType == CSAttribute.CheckBox)
+                {
+                    bool value;
+                    if (bool.TryParse(answer.Value, out value))
+                        answer.Value = Convert.ToInt32(value).ToString(CultureInfo.InvariantCulture);
+                    else if (answer.Value == null)
+                        answer.Value = 0.ToString();
+                }
+
+                answer.IsRequired = classAttributeDefinition.Required;
+                answer = (CSAnswers)(answerCache.Insert(answer) ?? answerCache.Locate(answer));
+                output.Add(answer);
+            }
+
+            //attributes belonging to both lists should be selected from CSAnswers cache/table with and additional IsRequired check against class definition
+            foreach (CSAnswers answer in answerList.Where(x => attributeIdListIntersection.Contains(x.AttributeID)).ToList())
+            {
+                var classAttributeDefinition = classAttributeList[answer.AttributeID];
+
+                if (PXSiteMap.IsPortal && classAttributeDefinition.IsInternal)
+                    continue;
+
+                if (answer.Value == null && classAttributeDefinition.ControlType == CSAttribute.CheckBox)
+                    answer.Value = bool.FalseString;
+
+                if (answer.IsRequired == null || classAttributeDefinition.Required != answer.IsRequired)
+                {
+                    answer.IsRequired = classAttributeDefinition.Required;
+
+                    var fieldState = View.Cache.GetValueExt<CSAnswers.isRequired>(answer) as PXFieldState;
+                    var fieldValue = fieldState != null && ((bool?)fieldState.Value).GetValueOrDefault();
+
+                    answer.IsRequired = classAttributeDefinition.Required || fieldValue;
+                }
+
+                output.Add(answer);
+            }
+
+            answerCache.IsDirty = cacheIsDirty;
+
+            output =
+                output.OrderBy(
+                    x =>
+                        classAttributeList.Contains(x.AttributeID)
+                            ? classAttributeList.IndexOf(x.AttributeID)
+                            : (x.Order ?? 0))
+                    .ThenBy(x => x.AttributeID)
+                    .ToList();
+
+            short attributeOrder = 0;
+
+            foreach (CSAnswers answer in output)
+            {
+                answer.Order = attributeOrder++;
+                yield return answer;
+            }
+        }
+
+        private void FieldUpdatingHandler(PXCache sender, PXFieldUpdatingEventArgs e)
+        {
+            CSAnswers row = e.Row as CSAnswers;
+            if (row != null && e.NewValue is string && row.AttributeID != null)
+            {
+                var attr = CRAttribute.Attributes[row.AttributeID];
+                if (attr != null)
+                {
+                    string newValue = (string)e.NewValue;
+                    switch (attr.ControlType)
+                    {
+                        case CSAttribute.CheckBox:
+                            bool value;
+                            if (bool.TryParse(newValue, out value))
+                            {
+                                e.NewValue = Convert.ToInt32(value).ToString(CultureInfo.InvariantCulture);
+                            }
+                            break;
+                        case CSAttribute.Datetime:
+                            DateTime dt;
+                            if (sender.Graph.IsMobile)
+                            {
+                                newValue = newValue.Replace("Z", "");
+                                if (DateTime.TryParse(newValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                                {
+
+                                    e.NewValue = dt.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+                                }
+                            }
+                            else
+                            {
+                                if (DateTime.TryParse(newValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                                {
+                                    e.NewValue = dt.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void FieldSelectingHandler(PXCache sender, PXFieldSelectingEventArgs e)
+        {
+            var row = e.Row as CSAnswers;
+            if (row == null) return;
+
+            var question = CRAttribute.Attributes[row.AttributeID];
+
+            var options = question != null ? question.Values : null;
+
+            int required = -1;
+            if (row.IsRequired == true)
+                required = 1;
+
+            if (options != null && options.Count > 0)
+            {
+                //ComboBox:
+                var allowedValues = new List<string>();
+                var allowedLabels = new List<string>();
+
+                foreach (var option in options)
+                {
+                    if (option.Disabled && row.Value != option.ValueID) continue;
+                    allowedValues.Add(option.ValueID);
+                    allowedLabels.Add(option.Description);
+                }
+
+                e.ReturnState = PXStringState.CreateInstance(e.ReturnState, CSAttributeDetail.ParameterIdLength,
+                    true, typeof(CSAnswers.value).Name, false, required, question.EntryMask, allowedValues.ToArray(), allowedLabels.ToArray(), true, null);
+
+
+                if (question.ControlType == CSAttribute.MultiSelectCombo)
+                {
+                    ((PXStringState)e.ReturnState).MultiSelect = true;
+                }
+            }
+            else if (question != null)
+            {
+                if (question.ControlType == CSAttribute.CheckBox)
+                {
+                    e.ReturnState = PXFieldState.CreateInstance(e.ReturnState, typeof(bool), false, false, required,
+                        null, null, false, typeof(CSAnswers.value).Name, null, null, null, PXErrorLevel.Undefined, true, true, null,
+                        PXUIVisibility.Visible, null, null, null);
+                    if (e.ReturnValue is string)
+                    {
+                        int value;
+                        if (int.TryParse((string)e.ReturnValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+                        {
+                            e.ReturnValue = Convert.ToBoolean(value);
+                        }
+                    }
+                }
+                else if (question.ControlType == CSAttribute.Datetime)
+                {
+                    e.ReturnState = PXDateState.CreateInstance(e.ReturnState, typeof(CSAnswers.value).Name, false, required, question.EntryMask, question.EntryMask,
+                        null, null);
+                }
+                else
+                {
+                    //TextBox:					
+                    PXStringState vstate = sender.GetStateExt<CSAnswers.value>(null) as PXStringState;
+                    e.ReturnState = PXStringState.CreateInstance(e.ReturnState, vstate.With(_ => _.Length), null, typeof(CSAnswers.value).Name,
+                        false, required, question.EntryMask, null, null, true, null);
+                }
+            }
+            if (e.ReturnState != null)
+            {
+                var error = PXUIFieldAttribute.GetError<CSAnswers.value>(sender, row);
+                if (error != null)
+                {
+                    var state = (PXFieldState)e.ReturnState;
+                    state.Error = error;
+                    state.ErrorLevel = PXErrorLevel.RowError;
+                }
+            }
+        }
+
+        private void AttrFieldSelectingHandler(PXCache sender, PXFieldSelectingEventArgs e)
+        {
+            PXUIFieldAttribute.SetEnabled<CSAnswers.attributeID>(sender, e.Row, false);
+        }
+
+
+        // -----------------Deprecated Interface IAttributeSupport & Entity Type-------------------
+
+
+        private void IsRequiredSelectingHandler(PXCache sender, PXFieldSelectingEventArgs e)
+        {
+            var row = e.Row as CSAnswers;
+            var current = sender.Graph.Caches[typeof(TEntity)].Current;
+
+            if (row == null || current == null)
+                return;
+            var currentNoteId = GetNoteId(current);
+
+            if (e.ReturnValue != null || row.RefNoteID != currentNoteId)
+                return;
+
+            //when importing data - make all attributes nonrequired (otherwise import might fail)
+            if (sender.Graph.IsImport)
+            {
+                e.ReturnValue = false;
+                return;
+            }
+
+            var currentClassId = GetClassId(current);
+
+            var attribute = CRAttribute.EntityAttributes(GetEntityTypeFromAttribute(current), currentClassId)[row.AttributeID];
+
+            if (attribute == null)
+            {
+                e.ReturnValue = false;
+            }
+            else
+            {
+                if (PXSiteMap.IsPortal && attribute.IsInternal)
+                    e.ReturnValue = false;
+                else
+                    e.ReturnValue = attribute.Required;
+            }
+        }
+
+
+        //private void IsRequiredSelectingHandler(PXCache sender, PXFieldSelectingEventArgs e)
+        //{
+        //    var row = e.Row as CSAnswers;
+        //    var current = sender.Graph.Caches[typeof(TReference)].Current as IAttributeSupport;
+        //    if (row == null || current == null || e.ReturnValue != null ||
+        //        row.EntityType != current.EntityType || row.EntityID != current.ID) return;
+
+        //    var attribute = CRAttribute.EntityAttributes(current.EntityType, current.ClassID)[row.AttributeID];
+        //    if (attribute != null)
+        //    {
+        //        e.ReturnValue = attribute.Required;
+        //        if (PXSiteMap.IsPortal && attribute.IsInternal)
+        //            e.ReturnValue = false;
+        //    }
+        //    else
+        //        e.ReturnValue = false;
+        //}
+
+
+        private void ReferenceRowPersistingHandler(PXCache sender, PXRowPersistingEventArgs e)
+        {
+            var row = e.Row as IAttributeSupport;
+            if (row == null || row.ID == null) return;
+
+            _ids[row.ID + row.EntityType] = e.Row;
+
+            PXCache answersCache = _Graph.Caches[typeof(CSAnswers)];
+
+            List<string> emptyRequired = new List<string>();
+            foreach (CSAnswers answer in answersCache.Cached)
+            {
+                if (answer.IsRequired == null)
+                {
+                    PXFieldState state = this.View.Cache.GetValueExt<CSAnswers.isRequired>(answer) as PXFieldState;
+                    if (state != null)
+                        answer.IsRequired = state.Value as bool?;
+                }
+
+                if (e.Operation == PXDBOperation.Delete)
+                {
+                    answersCache.Delete(answer);
+                }
+                else if (string.IsNullOrEmpty(answer.Value) && answer.IsRequired == true && !_Graph.UnattendedMode)
+                {
+                    string displayName = "";
+                    if (sender.GetStateExt(null, string.Format("{0}_Attributes", answer.AttributeID)) != null)
+                    {
+                        displayName = sender.GetStateExt(null, string.Format("{0}_Attributes", answer.AttributeID)).With(_ => _ as PXFieldState).With(_ => _.DisplayName).Replace("$Attributes$-", "");
+                    }
+                    emptyRequired.Add(displayName);
+                    var mayNotBeEmpty = string.Format(ErrorMessages.FieldIsEmpty, displayName);
+                    answersCache.RaiseExceptionHandling<CSAnswers.value>(answer, answer.Value, new PXSetPropertyException(mayNotBeEmpty, PXErrorLevel.RowError, typeof(CSAnswers.value).Name));
+                    PXUIFieldAttribute.SetError<CSAnswers.value>(answersCache, answer, mayNotBeEmpty);
+                }
+            }
+            if (emptyRequired.Count > 0)
+                throw new PXException(PX.Objects.CR.Messages.RequiredAttributesAreEmpty, string.Join(", ", emptyRequired.Select(s => string.Format("'{0}'", s))));
+        }
+
+        private void ReferenceRowUpdatingHandler(PXCache sender, PXRowUpdatingEventArgs e)
+        {
+            IAttributeSupport row = (IAttributeSupport)e.Row;
+            IAttributeSupport newRow = (IAttributeSupport)e.NewRow;
+
+            if (row == null || newRow == null || string.Equals(row.ClassID, newRow.ClassID, StringComparison.InvariantCultureIgnoreCase))
+                return;
+
+            var newAttrList = new HashSet<string>();
+            if (newRow.ClassID != null)
+                foreach (var attr in CRAttribute.EntityAttributes(newRow.EntityType, newRow.ClassID))
+                {
+                    newAttrList.Add(attr.ID);
+                }
+
+            foreach (CSAnswers answersRow in
+                PXSelect<CSAnswers,
+                Where<CSAnswers.entityID, Equal<Required<CSAnswers.entityID>>,
+                And<CSAnswers.entityType, Equal<Required<CSAnswers.entityType>>>>>
+                .SelectMultiBound(sender.Graph, null, row.ID, row.EntityType))
+            {
+                CSAnswers copy = PXCache<CSAnswers>.CreateCopy(answersRow);
+                View.Cache.Delete(answersRow);
+                if (newAttrList.Contains(copy.AttributeID))
+                {
+                    View.Cache.Insert(copy);
+                }
+            }
+
+            if (newRow.ClassID != null)
+                SelectInternal(newRow);
+            sender.IsDirty = true;
+        }
+
+        private void RawPersistDeleted(PXCache cache, object row)
+        {
+            try
+            {
+                cache.PersistDeleted(row);
+                cache.SetStatus(row, PXEntryStatus.InsertedDeleted);
+            }
+            catch (PXLockViolationException) { }
+            cache.ResetPersisted(row);
+        }
+
+
+        private void RowPersistingHandler(PXCache sender, PXRowPersistingEventArgs e)
+        {
+            if (e.Operation != PXDBOperation.Insert && e.Operation != PXDBOperation.Update) return;
+
+            CSAnswers row = e.Row as CSAnswers;
+            if (row == null) return;
+
+
+            if (row.EntityID != null && _ids.Contains(row.EntityID.ToString() + row.EntityType.ToString())
+                && ((IAttributeSupport)_ids[row.EntityID.ToString() + row.EntityType.ToString()]).EntityType == row.EntityType)
+            {
+                IAttributeSupport primaryRecord = _ids[row.EntityID + row.EntityType] as IAttributeSupport;
+                if (primaryRecord != null)
+                {
+                    row.EntityID = primaryRecord.ID;
+                }
+            }
+
+            if (row.EntityID == null || row.EntityType == null)
+            {
+                e.Cancel = true;
+                RawPersistDeleted(sender, row);
+            }
+            else if (string.IsNullOrEmpty(row.Value))
+            {
+                string mayNotBeEmpty = string.Format(ErrorMessages.FieldIsEmpty, sender.GetStateExt<CSAnswers.value>(null).With(_ => _ as PXFieldState).With(_ => _.DisplayName));
+                if (row.IsRequired == true &&
+                    sender.RaiseExceptionHandling<CSAnswers.value>(e.Row, row.Value, new PXSetPropertyException(mayNotBeEmpty, PXErrorLevel.RowError, typeof(CSAnswers.value).Name)))
+                {
+                    throw new PXRowPersistingException(typeof(CSAnswers.value).Name, row.Value, mayNotBeEmpty, typeof(CSAnswers.value).Name);
+                }
+                e.Cancel = true;
+                if (sender.GetStatus(row) != PXEntryStatus.Inserted)
+                    RawPersistDeleted(sender, row);
+            }
+        }
+
+        protected IAttributeSupport GetCurrentRow()
+        {
+            return _Graph.Caches[typeof(TReference)].Current as IAttributeSupport;
+        }
+
+        public void CopyAllAttributes(IAttributeSupport row, IAttributeSupport src)
+        {
+            CopyAttributes(row, src, true);
+        }
+
+        public void CopyAttributes(IAttributeSupport row, IAttributeSupport src)
+        {
+            CopyAttributes(row, src, false);
+        }
+
+        private void RowInsertedHandler(PXCache sender, PXRowInsertedEventArgs e)
+        {
+            if (sender != null && sender.Graph != null && !sender.Graph.IsImport)
+                SelectInternal(e.Row as IAttributeSupport).ToList();
+        }
+
+        private void CopyAttributes(IAttributeSupport row, IAttributeSupport src, bool copyall)
+        {
+            if (row == null || src == null) return;
+
+            List<CSAnswers> sources = SelectInternal(src).RowCast<CSAnswers>().ToList();
+            List<CSAnswers> dests = SelectInternal(row).RowCast<CSAnswers>().ToList();
+
+            foreach (var res in dests.Join(sources, d => d.AttributeID, s => s.AttributeID, (d, s) => new { Dst = d, Src = s }))
+            {
+                if ((copyall || string.IsNullOrEmpty(res.Dst.Value)) && res.Src != null && !string.IsNullOrEmpty(res.Src.Value))
+                {
+                    CSAnswers answer = PXCache<CSAnswers>.CreateCopy(res.Dst);
+                    answer.Value = res.Src.Value;
+                    _Graph.Caches<CSAnswers>().Update(answer);
+                }
+            }
+        }
+    }
+
+}
