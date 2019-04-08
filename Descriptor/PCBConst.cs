@@ -20,5 +20,7 @@ namespace ShoebaccaProj
         public class int09 : PX.Data.BQL.BqlInt.Constant<int09> { public int09() : base(9) { } }
         
         public class entityTypeIN : PX.Data.BQL.BqlString.Constant<entityTypeIN> { public entityTypeIN() : base("PX.Objects.IN.InventoryItem") { } }
+
+        public class nodropshipAttribute : PX.Data.BQL.BqlString.Constant<nodropshipAttribute> { public nodropshipAttribute() : base("NODROPSHIP") { } }
     }
 }
