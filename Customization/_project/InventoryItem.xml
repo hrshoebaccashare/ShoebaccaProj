@@ -1,0 +1,4 @@
+﻿<Table TableName="InventoryItem">
+    <Column TableName="InventoryItem" ColumnName="UsrQuantityatVendor" ColumnType="decimal" AllowNull="True" DecimalPrecision="2" DecimalLength="25" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="InventoryItem" ColumnName="UsrQAVDate" ColumnType="date" AllowNull="True" MaxLength="25" DecimalPrecision="2" IsNewColumn="True" IsUnicode="True" />
+</Table>
