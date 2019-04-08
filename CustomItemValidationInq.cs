@@ -84,38 +84,38 @@ namespace ShoebaccaProj
 	public class ValidationItems : IBqlTable
 	{
 		#region UPCcode
-			[PXString(100, IsKey=true)]
-			[PXUIField(DisplayName = "UPC Code")]
-			public virtual string UPCcode { get; set; }
-			public class uPCcode : IBqlField { }
+		[PXString(100, IsKey=true)]
+		[PXUIField(DisplayName = "UPC Code")]
+		public virtual string UPCcode { get; set; }
+		public abstract class uPCcode : PX.Data.BQL.BqlString.Field<uPCcode> { }
 		#endregion
 
 		#region Description
-			[PXString(50)]
-			[PXUIField(DisplayName = "UPC Description")]
-			public virtual string Description { get; set; }
-			public class description : IBqlField { }
+		[PXString(50)]
+		[PXUIField(DisplayName = "UPC Description")]
+		public virtual string Description { get; set; }
+		public abstract class description : PX.Data.BQL.BqlString.Field<description> { }
 		#endregion
 
 		#region AlreadyExists
-			[PXBool()]
-			[PXUIField(DisplayName = "Already Exists")]
-			public bool? AlreadyExists { get; set; }
-			public class alreadyExists : IBqlField { }
+		[PXBool()]
+		[PXUIField(DisplayName = "Already Exists")]
+		public bool? AlreadyExists { get; set; }
+		public abstract class alreadyExists : PX.Data.BQL.BqlBool.Field<alreadyExists> { }
 		#endregion
 
 		#region ItemID
-			[PXString(50)]
-			[PXUIField(DisplayName = "Item ID")]
-			public virtual string ItemID { get; set; }
-			public class itemID : IBqlField { }
+		[PXString(50)]
+		[PXUIField(DisplayName = "Item ID")]
+		public virtual string ItemID { get; set; }
+		public abstract class itemID : PX.Data.BQL.BqlString.Field<itemID> { }
 		#endregion
 
 		#region ItemDescription
-			[PXString(50)]
-			[PXUIField(DisplayName = "Item Description")]
-			public virtual string ItemDescription { get; set; }
-			public class itemDescription : IBqlField { }
+		[PXString(50)]
+		[PXUIField(DisplayName = "Item Description")]
+		public virtual string ItemDescription { get; set; }
+		public abstract class itemDescription : PX.Data.BQL.BqlString.Field<itemDescription> { }
 		#endregion
 	}
 

@@ -60,6 +60,7 @@
     <Compile Include="DAC\SOOrderShipmentExt.cs" />
     <Compile Include="InventoryItemMaintExtPCB.cs" />
     <Compile Include="POReceiptEntryExt.cs" />
+    <Compile Include="SOOrderEntryExt.cs" />
     <Compile Include="SOShipmentEntryExt.cs" />
     <Compile Include="POOrderExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

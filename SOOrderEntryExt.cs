@@ -1,5 +1,4 @@
-﻿<Graph ClassName="SOOrderEntryExt" Source="#CDATA" IsNew="True" FileType="NewGraph">
-    <CDATA name="Source"><![CDATA[using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +18,7 @@ namespace PXDropShipPOExtPkg
         /// <summary>
         /// Dropship customization should work for only SB branch, so created constant for SB
         /// </summary>
-        
         private const string BranchName = "SB";
-    
 
         /// <summary>
         /// Getting the Available quantity from 1 to 98 and 99 location
@@ -32,8 +29,6 @@ namespace PXDropShipPOExtPkg
         /// <param name="SOQty">soquantity</param>
         /// <param name="line">so line object</param>
         /// <returns>returns the availablequantity object with all details</returns>
-        
-
         private AvailableQuantity CheckForAvailableQty(int InventoryId, int SubitemID, int SiteID, decimal SOQty, SOLine line)
         {
             AvailableQuantity output = new AvailableQuantity();
@@ -88,14 +83,14 @@ namespace PXDropShipPOExtPkg
                 {
                     PXSelectBase<InventoryItem> vendorQty = new PXSelect<InventoryItem,
                     Where<InventoryItem.inventoryID, Equal<Required<InventoryItem.inventoryID>>,
-                    And<InventoryItemExt.usrQuantityatVendor, IsNotNull,
-                    And<InventoryItemExt.usrQuantityatVendor, Greater<Required<InventoryItemExt.usrQuantityatVendor>>>>>>(Base);
+                    And<InventoryItemExtn.usrQuantityatVendor, IsNotNull,
+                    And<InventoryItemExtn.usrQuantityatVendor, Greater<Required<InventoryItemExtn.usrQuantityatVendor>>>>>>(Base);
 
                     decimal balQty = SOQty - availSoQty;
                     InventoryItem item = vendorQty.SelectSingle(filter.InventoryID, 0);
                     if (item != null)
                     {
-                        InventoryItemExt itemExt = PXCache<InventoryItem>.GetExtension<InventoryItemExt>(item);
+                        InventoryItemExtn itemExt = PXCache<InventoryItem>.GetExtension<InventoryItemExtn>(item);
                         if (itemExt.UsrQuantityatVendor >= balQty)
                         {
                             availSoQty = availSoQty + balQty;
@@ -142,55 +137,11 @@ namespace PXDropShipPOExtPkg
             return output;
         }
 
-
-        //  ------ commented DropShip Attribute code -----------
-
-        //protected virtual void SOLine_pOCreate_FieldUpdated(PXCache cache, PXFieldUpdatedEventArgs e, PXFieldUpdated InvokeBaseHandler)
-        //{
-        //    if (InvokeBaseHandler != null) InvokeBaseHandler(cache, e);
-        //    var row = (SOLine)e.Row;
-
-        //    if (row != null)
-        //    {
-        //        PXSelectBase<CSAnswers> answer = new PXSelect<CSAnswers, Where<CSAnswers.entityID, Equal<Required<CSAnswers.entityID>>,
-        //                                        And<CSAnswers.entityType, Equal<EntityType>, And<CSAnswers.attributeID, Equal<AttributeId>>>>>(Base);
-
-        //        CSAnswers currentAnswer = answer.Select(row.InventoryID);
-
-        //        if (currentAnswer != null)
-        //        {
-        //            if (currentAnswer.Value == "1")
-        //            {
-        //                if (row.POCreate == true)
-        //                {
-        //                    row.POCreate = false;
-        //                    row.POSource = null;
-        //                    PXUIFieldAttribute.SetWarning<SOLine.pOCreate>(cache, row, "This Item Cannot Be Drop Shipped");  
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
         protected virtual void SOOrder_RowPersisting(PXCache sender, PXRowPersistingEventArgs e, PXRowPersisting BaseEvent)
         {
             var row = (SOOrder)e.Row;
-
-            //  ------ commented DropShip Attribute code -----------
-
-            //PXSelectBase<CSAnswers> answer = new PXSelect<CSAnswers, Where<CSAnswers.entityID, Equal<Required<CSAnswers.entityID>>,
-            //                                    And<CSAnswers.entityType, Equal<EntityType>, And<CSAnswers.attributeID, Equal<AttributeId>>>>>(Base);
-
-            if (row!=null)
+            if (row != null)
             {
-                //foreach (SOLine item in Base.Transactions.Select())
-                //{
-                //    CSAnswers currentAnswer = answer.Select(item.InventoryID);
-
-                    // if (currentAnswer!=null)
-                    //{
-                        //if (currentAnswer.Value != "1" || currentAnswer.Value == null)    //Checking  Do Not Drop Ship
-                        //{
                 if (Base.Document.Current != null && (e.Operation == PXDBOperation.Insert))
                 {
                     //Checking the each and very so line available quantity and if the quantity is available in 99 location creating the Dropship PO
@@ -198,9 +149,6 @@ namespace PXDropShipPOExtPkg
                     {
                         if (line.IsStockItem == true)
                         {
-
-
-
                             string branchcd = string.Empty;
                             Branch currentBranch = PXSelect<Branch, Where<Branch.branchID, Equal<Required<Branch.branchID>>>>.Select(Base, line.BranchID);
 
@@ -252,30 +200,14 @@ namespace PXDropShipPOExtPkg
                         }
                     }
                 }
-                       // }
-                   // }
-               // }
-
             }
 
             //Base
-            if (BaseEvent != null)  BaseEvent(sender,e);
+            if (BaseEvent != null) BaseEvent(sender, e);
         }
-
-        //#region Constants
-        //public class AttributeId : Constant<string>
-        //{
-        //    public AttributeId() : base("NODROPSHIP") { }
-        //}
-        //public class EntityType : Constant<string>
-        //{
-        //    public EntityType() : base("IN") { }
-        //}
-        //#endregion
     }
 
     #region Class for store available quantity
-
     public class AvailableQuantity
     {
         public decimal QtyAvail { get; set; }
@@ -284,7 +216,4 @@ namespace PXDropShipPOExtPkg
         public decimal POQty { get; set; }
     }
     #endregion
-
-
-}]]></CDATA>
-</Graph>
+}

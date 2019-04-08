@@ -19,8 +19,12 @@ namespace PX.Objects.IN
         public string UsrFRUPC { get; set; }
         public abstract class usrFRUPC : PX.Data.BQL.BqlString.Field<usrFRUPC> { }
         #endregion
+
+        #region UsrQuantityatVendor
+        [PXDBDecimal(2, IsKey = false)]
+        [PXUIField(DisplayName = "Quantity at Vendor")]
+        public decimal? UsrQuantityatVendor { get; set; }
+        public abstract class usrQuantityatVendor : PX.Data.BQL.BqlDecimal.Field<usrQuantityatVendor> { }
+        #endregion
     }
 }
-
-
-
