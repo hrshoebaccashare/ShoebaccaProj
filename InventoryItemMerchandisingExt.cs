@@ -7,11 +7,9 @@ using ShoebaccaProj;
 
 namespace PX.Objects.IN
 {
-    public class InventoryItemMaintExtPCB : PXGraphExtension<InventoryItemMaint>
+    public class InventoryItemMerchangisingExt : PXGraphExtension<InventoryItemMaint>
     {
-
         #region Views
-
         public PXSelect<CSAttributeDetail2,
                                         Where<CSAttributeDetail2.attributeID, Equal<Required<CSAttributeDetail2.attributeID>>>,
                                         OrderBy<Asc<CSAttributeDetail2.sortOrder>>> AttributeDetails;
@@ -219,7 +217,6 @@ namespace PX.Objects.IN
         #endregion Views
 
         #region CacheAttached
-
         [PXDefault()]
         [InventoryRaw(IsKey = true, DisplayName = "Inventory ID")]
         [PXSelector(typeof(InventoryItem.inventoryCD),
@@ -240,7 +237,6 @@ namespace PX.Objects.IN
         #endregion CacheAttached
 
         #region Event Handlers
-
         protected virtual void AttributeCaptions_RowSelected(PXCache sender, PXRowSelectedEventArgs e)
         {
             AttributeCaptions row = (AttributeCaptions)e.Row;
@@ -526,7 +522,6 @@ namespace PX.Objects.IN
         #endregion Event Handler
 
         #region Methods
-
         private PXResultset<CSAnswers, CSAttributeGroup, CSAttributeDetail2> GenerateAttributeList(int attributeNum)
         {
             PXResultset<CSAnswers, CSAttributeGroup, CSAttributeDetail2> list = new PXResultset<CSAnswers, CSAttributeGroup, CSAttributeDetail2>();

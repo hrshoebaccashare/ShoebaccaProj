@@ -61,7 +61,8 @@
     <Compile Include="Descriptor\PCBConst.cs" />
     <Compile Include="DAC\POReceiptPackages.cs" />
     <Compile Include="DAC\SOOrderShipmentExt.cs" />
-    <Compile Include="InventoryItemMaintExtPCB.cs" />
+    <Compile Include="InventoryItemDropshipValidationsExt.cs" />
+    <Compile Include="InventoryItemMerchandisingExt.cs" />
     <Compile Include="POReceiptEntryExt.cs" />
     <Compile Include="SOOrderEntryExt.cs" />
     <Compile Include="SOShipmentEntryExt.cs" />
