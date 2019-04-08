@@ -15,7 +15,6 @@ namespace ShoebaccaProj
 {
 	public class SOShipmentEntryExt : PXGraphExtension<SOShipmentEntry>
 	{
-
 		public PXSelect<SOPackageDetail,
 											Where<SOPackageDetail.shipmentNbr, Equal<Required<SOPackageDetail.shipmentNbr>>>,
 											OrderBy<Asc<SOPackageDetail.lineNbr>>> FirstTrackingNumber;
@@ -23,9 +22,7 @@ namespace ShoebaccaProj
 		public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>> OrderShipment;
 
 		[PXOverride]
-		public void ConfirmShipment(SOOrderEntry docgraph, SOShipment shiporder,
-																Action<SOOrderEntry, SOShipment> method
-																)
+		public void ConfirmShipment(SOOrderEntry docgraph, SOShipment shiporder, Action<SOOrderEntry, SOShipment> method)
 		{
 			method(docgraph, shiporder);
 			SOPackageDetail TNbr = FirstTrackingNumber.Select(shiporder.ShipmentNbr);

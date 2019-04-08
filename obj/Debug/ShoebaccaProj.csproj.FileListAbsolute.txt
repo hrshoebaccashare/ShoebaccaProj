@@ -147,3 +147,8 @@ C:\Program Files (x86)\Acumatica ERP\Shoebacca181030022\ShoebaccaProj\obj\Debug\
 E:\project\Shoebacca 2018 R1\PCB customization\Source code\ShoebaccaProj\obj\Debug\ShoebaccaProj.dll
 E:\project\Shoebacca 2018 R1\PCB customization\Source code\ShoebaccaProj\obj\Debug\ShoebaccaProj.pdb
 E:\project\Shoebacca 2018 R1\PCB customization\Source code\ShoebaccaProj\obj\Debug\ShoebaccaProj.csprojResolveAssemblyReference.cache
+C:\Dev\ACM-PCBCustomizations\obj\Debug\ShoebaccaProj.csprojAssemblyReference.cache
+C:\Dev\ACM-PCBCustomizations\obj\Debug\ShoebaccaProj.csproj.CoreCompileInputs.cache
+C:\Dev\ACM-PCBCustomizations\obj\Debug\ShoebaccaProj.dll
+C:\Dev\ACM-PCBCustomizations\obj\Debug\ShoebaccaProj.pdb
+C:\Dev\ACM-PCBCustomizations\obj\Debug\ShoebaccaProj.csproj.CopyComplete

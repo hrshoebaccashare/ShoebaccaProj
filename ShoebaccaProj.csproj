@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ShoebaccaProj</RootNamespace>
     <AssemblyName>ShoebaccaProj</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -31,23 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FusionCore">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\FusionCore.dll</HintPath>
-    </Reference>
-    <Reference Include="KN.SI.Extensibility5302046">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\KN.SI.Extensibility5302046.dll</HintPath>
-    </Reference>
-    <Reference Include="PX.Api.ContractBased.Common">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Api.ContractBased.Common.dll</HintPath>
-    </Reference>
     <Reference Include="PX.Common">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Common.dll</HintPath>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Common.dll</HintPath>
     </Reference>
     <Reference Include="PX.Data">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Data.dll</HintPath>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Data.dll</HintPath>
     </Reference>
     <Reference Include="PX.Objects">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Objects.dll</HintPath>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Objects.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,7 +49,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSAttributeMaint.cs" />
     <Compile Include="DAC\CSAttributeGroupExt.cs" />
     <Compile Include="DAC\INSetupExt.cs" />
     <Compile Include="DAC\PX_Objects_CS_CSAttributeDetail_extensions.cs" />

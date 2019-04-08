@@ -15,9 +15,7 @@ namespace PX.Objects.IN
         public PXSelect<CSAttributeDetail2,
                                         Where<CSAttributeDetail2.attributeID, Equal<Required<CSAttributeDetail2.attributeID>>>,
                                         OrderBy<Asc<CSAttributeDetail2.sortOrder>>> AttributeDetails;
-
-       // public CRCustomAttributeList<InventoryItem> Answers;
-
+        
         public PXFilter<AttributeCaptions> Captions;
 
         public virtual IEnumerable captions()
@@ -66,9 +64,6 @@ namespace PX.Objects.IN
         }
 
         #region Attribute Grids
-
-        // Upgrade Change 5.30 to 6.10   -- CSAttributeGroup.type, Equal<PCBConst.entityTypeIN to CSAttributeGroup.entityType, Equal<PCBConst.entityTypeIN 
-        //                                -- Replace CSAnswers.EntityId to CSAnswers.RefNoteId and Removed the CSAnswers.EntityType
 
         public PXSelectJoin<CSAnswers,
                                                 RightJoin<CSAttributeGroup, On<CSAnswers.attributeID, Equal<CSAttributeGroup.attributeID>

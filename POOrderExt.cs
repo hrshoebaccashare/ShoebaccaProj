@@ -56,7 +56,6 @@ namespace ShoebaccaProj
 
                     BAccount account = PXSelect<BAccount, Where<BAccount.type, Equal<Required<BAccount.type>>, And<BAccount.bAccountID, Equal<Required<BAccount.bAccountID>>>>>.Select(Base, BAccountType.VendorType, row.VendorID);
 
-
                     //Add Drop ship PO Line Items based on vendor attributes
                     foreach (PXResult<CSAnswers, CSAttribute> attr in PXSelectJoin<CSAnswers,
                                                                                                     InnerJoin<CSAttribute, On<CSAttribute.attributeID, Equal<CSAnswers.attributeID>>>,
