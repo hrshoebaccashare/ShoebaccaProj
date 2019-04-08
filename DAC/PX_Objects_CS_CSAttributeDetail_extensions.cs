@@ -10,7 +10,7 @@ namespace PX.Objects.CS
         [PXDBString(2048)]
         [PXUIField(DisplayName = "Sales Categories")]
         public string UsrSBSalesCategories { get; set; }
-        public abstract class usrSBSalesCategories : IBqlField { }
+        public abstract class usrSBSalesCategories : PX.Data.BQL.BqlString.Field<usrSBSalesCategories> { }
         #endregion
     }
 }

@@ -9,7 +9,7 @@ namespace PX.Objects.IN
 		[PXDBString(100)]
 		[PXUIField(DisplayName = "Image URL")]
 		public string UsrImageURL { get; set; }
-		public abstract class usrImageURL : IBqlField { }
+		public abstract class usrImageURL : PX.Data.BQL.BqlString.Field<usrImageURL> { }
 		#endregion
 
 		#region UsrCategoryAttribute
@@ -18,7 +18,7 @@ namespace PX.Objects.IN
 		[PXDefault]
 		[PXSelector(typeof(Search<CSAttribute.attributeID>), DescriptionField = typeof(CSAttribute.description))]
 		public string UsrCategoryAttribute { get; set; }
-		public abstract class usrCategoryAttribute : IBqlField { }
+		public abstract class usrCategoryAttribute : PX.Data.BQL.BqlString.Field<usrCategoryAttribute> { }
 		#endregion
 	}
 }

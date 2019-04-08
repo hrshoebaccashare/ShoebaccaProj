@@ -10,7 +10,7 @@ namespace PX.Objects.CS
 		[PXUIField(DisplayName = "Category")]
 		[ItemCategory]
 		public string UsrCategory { get; set; }
-		public abstract class usrCategory : IBqlField { }
+		public abstract class usrCategory : PX.Data.BQL.BqlString.Field<usrCategory> { }
 		#endregion
 	}
 }

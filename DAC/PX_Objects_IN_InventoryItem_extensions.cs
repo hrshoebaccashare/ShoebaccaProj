@@ -10,14 +10,14 @@ namespace PX.Objects.IN
         [PXDBString(30, IsKey = false, BqlTable = typeof(PX.Objects.IN.InventoryItem), IsFixed = false, IsUnicode = true)]
         [PXUIField(DisplayName = "Parent SKU ID")]
         public string UsrParentSKUID { get; set; }
-        public abstract class usrParentSKUID : IBqlField { }
+        public abstract class usrParentSKUID : PX.Data.BQL.BqlString.Field<usrParentSKUID> { }
         #endregion
 
         #region UsrFRUPC
         [PXDBString(100, IsFixed = false, IsUnicode = true)]
         [PXUIField(DisplayName = "UPC Code")]
         public string UsrFRUPC { get; set; }
-        public abstract class usrFRUPC : IBqlField { }
+        public abstract class usrFRUPC : PX.Data.BQL.BqlString.Field<usrFRUPC> { }
         #endregion
     }
 }

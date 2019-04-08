@@ -12,21 +12,21 @@ namespace ShoebaccaProj
 		[PXUIField(DisplayName = "Receipt Nbr")]
 		[PXDefault(typeof(POReceipt.receiptNbr))]
 		public virtual string ReceiptNbr { get; set; }
-		public abstract class receiptNbr : IBqlField { }
+		public abstract class receiptNbr : PX.Data.BQL.BqlString.Field<receiptNbr> { }
 		#endregion
 
 		#region PackageNbr
 		[PXDBInt(IsKey = true)]
 		[PXUIField(DisplayName = "Package Nbr")]
 		public int? PackageNbr { get; set; }
-		public abstract class packageNbr : IBqlField { }
+		public abstract class packageNbr : PX.Data.BQL.BqlInt.Field<packageNbr> { }
 		#endregion
 
 		#region TrackingNumber
 		[PXDBString(30)]
 		[PXUIField(DisplayName = "Tracking Number")]
 		public virtual String TrackingNumber { get; set; }
-		public abstract class trackingNumber : IBqlField { }
+		public abstract class trackingNumber : PX.Data.BQL.BqlString.Field<trackingNumber> { }
 		#endregion
 	}
 }
