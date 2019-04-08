@@ -2,14 +2,6 @@
     <PXTabItem Text="General Settings" ParentId="phF_tab_Items#0" TypeFullName="PX.Web.UI.PXTabItem">
         <Children Key="Template">
             <AddItem>
-                <PXTextEdit TypeFullName="PX.Web.UI.PXTextEdit">
-                    <Prop Key="Virtual:ApplyStylesheetSkin" />
-                    <Prop Key="ID" Value="CstPXTextEdit1" />
-                    <Prop Key="DataField" Value="UsrImageURL" />
-                    <Prop Key="Size" Value="L" />
-                </PXTextEdit>
-            </AddItem>
-            <AddItem>
                 <PXSelector TypeFullName="PX.Web.UI.PXSelector">
                     <Prop Key="Virtual:ApplyStylesheetSkin" />
                     <Prop Key="ID" Value="CstPXSelector2" />

@@ -5,13 +5,6 @@ namespace PX.Objects.IN
 {
     public sealed class INSetupExt : PXCacheExtension<INSetup>
 	{
-		#region UsrImageURL
-		[PXDBString(100)]
-		[PXUIField(DisplayName = "Image URL")]
-		public string UsrImageURL { get; set; }
-		public abstract class usrImageURL : PX.Data.BQL.BqlString.Field<usrImageURL> { }
-		#endregion
-
 		#region UsrCategoryAttribute
 		[PXDBString(10)]
 		[PXUIField(DisplayName = "Category Attribute")]

@@ -270,15 +270,6 @@
                             </PXLayoutRule>
                         </AddItem>
                         <AddItem>
-                            <PXImageView TypeFullName="PX.Web.UI.PXImageView">
-                                <Prop Key="Virtual:ApplyStylesheetSkin" />
-                                <Prop Key="ID" Value="dynamicImage2" />
-                                <Prop Key="Width" Value="200" />
-                                <Prop Key="Height" Value="200" />
-                                <Prop Key="DataField" Value="Captions.ItemImageURL" />
-                            </PXImageView>
-                        </AddItem>
-                        <AddItem>
                             <PXLayoutRule TypeFullName="PX.Web.UI.PXLayoutRule">
                                 <Prop Key="Virtual:ApplyStylesheetSkin" />
                                 <Prop Key="ID" Value="CstPXLayoutRule33" />

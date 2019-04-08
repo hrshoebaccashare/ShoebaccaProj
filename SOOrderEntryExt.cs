@@ -94,7 +94,7 @@ namespace PXDropShipPOExtPkg
                     .Select(Base, inventoryID);
                 var item = (InventoryItem)result;
                 InventoryItemExtn itemExt = PXCache<InventoryItem>.GetExtension<InventoryItemExtn>(item);
-
+                 
                 var attr = (CSAnswers)result;
                 bool dropshipAllowed = (attr == null || attr.Value == "0");
 
