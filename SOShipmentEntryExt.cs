@@ -37,5 +37,78 @@ namespace ShoebaccaProj
 				}
 			}
 		}
-	}
+
+        public virtual void SOShipment_RowPersisting(PXCache sender, PXRowPersistingEventArgs e)
+        {
+            if ((e.Operation & PXDBOperation.Command) == PXDBOperation.Delete) return;
+
+            SOShipment row = e.Row as SOShipment;
+            INSite warehouse = PXSelectorAttribute.Select<SOShipment.siteID>(sender, row) as INSite;
+
+            if (warehouse != null)
+            {
+                //Apply logic and try to find the corresponding ship via for this warehouse.
+                //Logic is hardcoded but simpler/cheaper to maintain at this point.
+                string warehouseSiteCD = warehouse.SiteCD.TrimEnd();
+                string newShipVia = null;
+
+                if (row.ShipVia == "FREESHIP" && warehouseSiteCD == "SHOEBACCA")
+                {
+                    if (row.ShipmentWeight < 1)
+                    {
+                        newShipVia = "FIRSTCLASS";
+                    }
+                    else
+                    {
+                        newShipVia = "FEDEXSMART";
+                    }
+                }
+                else if (row.ShipVia == "FREESHIP" && warehouseSiteCD == "CLKSVL")
+                {
+                    if (row.ShipmentWeight < 1)
+                    {
+                        newShipVia = "FIRSTCLASS"; //There's no distinct ship via for USPS and CLKSVL...
+                    }
+                    else
+                    {
+                        newShipVia = "CLKFEDEXSMART";
+                    }
+                }
+                else if (row.ShipVia == "GROUND" && warehouseSiteCD == "SHOEBACCA")
+                {
+                    newShipVia = "FEDEXGROUND";
+                }
+                else if (row.ShipVia == "GROUND" && warehouseSiteCD == "CLKSVL")
+                {
+                    newShipVia = "CLKFEDEXGROUND";
+                }
+                else if (row.ShipVia == "2DAY" && warehouseSiteCD == "SHOEBACCA")
+                {
+                    newShipVia = "FEDEX2DAY";
+                }
+                else if (row.ShipVia == "2DAY" && warehouseSiteCD == "CLKSVL")
+                {
+                    newShipVia = "CLKFEDEX2DAY";
+                }
+                else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "SHOEBACCA")
+                {
+                    newShipVia = "FEDEXPOVERNIGHT";
+                }
+                else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "CLKSVL")
+                {
+                    newShipVia = "CLKFEDEXON";
+                }
+
+                if (newShipVia != null)
+                {
+                    PXTrace.WriteInformation("ShipVia {0} remapped to {1} in warehouse {2}.", row.ShipVia, newShipVia, warehouse.SiteCD);
+                    row.ShipVia = newShipVia;
+                }
+                else
+                {
+                    PXTrace.WriteInformation("ShipVia not remapped. No entry in map for ship via {0} in warehouse {1}", row.ShipVia, warehouse.SiteCD);
+                }
+            }
+        }
+    }
 }

@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="DAC\CSAttributeGroupExt.cs" />
     <Compile Include="DAC\INSetupExt.cs" />
+    <Compile Include="DAC\INSiteExt.cs" />
     <Compile Include="DAC\PX_Objects_CS_CSAttributeDetail_extensions.cs" />
     <Compile Include="DAC\PX_Objects_IN_InventoryItem_extensions.cs" />
     <Compile Include="DAC\POReceiptPackages.cs" />
