@@ -55,15 +55,31 @@ namespace ShoebaccaProj
                 var fees = GetVendorDropshipFees(row.VendorID.Value);
                 if(fees.DiscountPercentage != 0 && !DropshipFeesItemExistOnInvoice(dropshipFeeItem.InventoryID.Value, Messages.DropShipDiscountPercentage))
                 {
-                    decimal totalCost = Base.Transactions.Select().Cast<POLine>().Where(line => line.InventoryID != dropshipFeeItem.InventoryID).Sum(line => line.ExtCost.Value);
-                    decimal discount = (fees.DiscountPercentage / 100) * totalCost;
-                    AddDropshipFees(dropshipFeeItem.InventoryID.Value, Messages.DropShipOrderHandlingFee, 1, -discount);
+                    decimal totalCost = 0;
+                    foreach (POLine line in Base.Transactions.Select())
+                    {
+                        if (line.InventoryID != dropshipFeeItem.InventoryID)
+                        {
+                            totalCost += line.ExtCost.Value;
+                        }
+                    }
+
+                    decimal discount = Decimal.Round((fees.DiscountPercentage / 100) * totalCost, 2);
+                    AddDropshipFees(dropshipFeeItem.InventoryID.Value, Messages.DropShipDiscountPercentage, 1, -discount);
                 }
 
                 if(fees.ItemHandlingFee != 0 && !DropshipFeesItemExistOnInvoice(dropshipFeeItem.InventoryID.Value, Messages.DropShipItemHandlingFee))
                 {
-                    int lineCount = Base.Transactions.Select().Cast<POLine>().Where(line => line.InventoryID != dropshipFeeItem.InventoryID).Count();
-                    AddDropshipFees(dropshipFeeItem.InventoryID.Value, Messages.DropShipOrderHandlingFee, lineCount, fees.ItemHandlingFee);
+                    int lineCount = 0;
+                    foreach (POLine line in Base.Transactions.Select())
+                    {
+                        if (line.InventoryID != dropshipFeeItem.InventoryID)
+                        {
+                            lineCount++;
+                        }
+                    }
+                    
+                    AddDropshipFees(dropshipFeeItem.InventoryID.Value, Messages.DropShipItemHandlingFee, lineCount, fees.ItemHandlingFee);
                 }
 
                 if (fees.OrderHandlingFee != 0 && !DropshipFeesItemExistOnInvoice(dropshipFeeItem.InventoryID.Value, Messages.DropShipOrderHandlingFee))
