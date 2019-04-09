@@ -59,6 +59,7 @@
     <Compile Include="DAC\PX_Objects_IN_InventoryItem_extensions.cs" />
     <Compile Include="DAC\POReceiptPackages.cs" />
     <Compile Include="DAC\SOOrderShipmentExt.cs" />
+    <Compile Include="Descriptor\Messages.cs" />
     <Compile Include="Descriptor\PCBAttributes.cs" />
     <Compile Include="Descriptor\PCBConst.cs" />
     <Compile Include="InventoryItemDropshipValidationsExt.cs" />
