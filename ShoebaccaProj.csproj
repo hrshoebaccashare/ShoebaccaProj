@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="KN.SI.PCExtensibility191000122">
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\KN.SI.PCExtensibility191000122.dll</HintPath>
+    </Reference>
     <Reference Include="PX.Common">
       <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Common.dll</HintPath>
     </Reference>
