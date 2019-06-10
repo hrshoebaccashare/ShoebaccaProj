@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>C:\Program Files %28x86%29\Acumatica ERP\Shoebacca181030022\Bin\</OutputPath>
+    <OutputPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -31,8 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="KN.SI.PCExtensibility191000122">
-      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\KN.SI.PCExtensibility191000122.dll</HintPath>
+    <Reference Include="ProductConfigurator">
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\ProductConfigurator.dll</HintPath>
     </Reference>
     <Reference Include="PX.Common">
       <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Common.dll</HintPath>
