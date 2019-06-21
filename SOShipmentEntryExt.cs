@@ -60,7 +60,7 @@ namespace ShoebaccaProj
                     }
                     else
                     {
-                        newShipVia = "FEDEXSMART";
+                        newShipVia = "IRVSPOST";
                     }
                 }
                 else if (row.ShipVia == "FREESHIP" && warehouseSiteCD == "CLKSVL")
@@ -71,32 +71,32 @@ namespace ShoebaccaProj
                     }
                     else
                     {
-                        newShipVia = "CLKFEDEXSMART";
+                        newShipVia = "CLKSPOST";
                     }
                 }
                 else if (row.ShipVia == "GROUND" && warehouseSiteCD == "SHOEBACCA")
                 {
-                    newShipVia = "FEDEXGROUND";
+                    newShipVia = "IRVUPSGND";
                 }
                 else if (row.ShipVia == "GROUND" && warehouseSiteCD == "CLKSVL")
                 {
-                    newShipVia = "CLKFEDEXGROUND";
+                    newShipVia = "CLKUPSGND";
                 }
                 else if (row.ShipVia == "2DAY" && warehouseSiteCD == "SHOEBACCA")
                 {
-                    newShipVia = "FEDEX2DAY";
+                    newShipVia = "IRVUPS2DAY";
                 }
                 else if (row.ShipVia == "2DAY" && warehouseSiteCD == "CLKSVL")
                 {
-                    newShipVia = "CLKFEDEX2DAY";
+                    newShipVia = "CLKUPS2DAY";
                 }
                 else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "SHOEBACCA")
                 {
-                    newShipVia = "FEDEXPOVERNIGHT";
+                    newShipVia = "IRVUPSON";
                 }
                 else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "CLKSVL")
                 {
-                    newShipVia = "CLKFEDEXON";
+                    newShipVia = "CLKUPSON";
                 }
 
                 if (newShipVia != null)
