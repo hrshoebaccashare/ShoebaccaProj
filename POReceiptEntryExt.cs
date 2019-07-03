@@ -15,7 +15,6 @@ namespace ShoebaccaProj
 {
 	public class PPOReceiptEntryExt : PXGraphExtension<POReceiptEntry>
 	{       
-		public PXSelect<POReceiptPackages, Where<POReceiptPackages.receiptNbr, Equal<Current<POReceipt.receiptNbr>>>> Packages;
-        
+		public PXSelect<POReceiptPackages, Where<POReceiptPackages.receiptNbr, Equal<Current<POReceipt.receiptNbr>>>> Packages;       
 	}
 }

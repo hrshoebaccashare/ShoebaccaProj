@@ -7,17 +7,13 @@ using ShoebaccaProj;
 
 namespace PX.Objects.IN
 {
-    public class InventoryItemMaintExtPCB : PXGraphExtension<InventoryItemMaint>
+    public class InventoryItemMerchangisingExt : PXGraphExtension<InventoryItemMaint>
     {
-
         #region Views
-
         public PXSelect<CSAttributeDetail2,
                                         Where<CSAttributeDetail2.attributeID, Equal<Required<CSAttributeDetail2.attributeID>>>,
                                         OrderBy<Asc<CSAttributeDetail2.sortOrder>>> AttributeDetails;
-
-       // public CRCustomAttributeList<InventoryItem> Answers;
-
+        
         public PXFilter<AttributeCaptions> Captions;
 
         public virtual IEnumerable captions()
@@ -59,16 +55,11 @@ namespace PX.Objects.IN
                         break;
                 }
             }
-
-            row.ItemImageURL = GenerateImageURL();
-
+            
             yield return row;
         }
 
         #region Attribute Grids
-
-        // Upgrade Change 5.30 to 6.10   -- CSAttributeGroup.type, Equal<PCBConst.entityTypeIN to CSAttributeGroup.entityType, Equal<PCBConst.entityTypeIN 
-        //                                -- Replace CSAnswers.EntityId to CSAnswers.RefNoteId and Removed the CSAnswers.EntityType
 
         public PXSelectJoin<CSAnswers,
                                                 RightJoin<CSAttributeGroup, On<CSAnswers.attributeID, Equal<CSAttributeGroup.attributeID>
@@ -224,7 +215,6 @@ namespace PX.Objects.IN
         #endregion Views
 
         #region CacheAttached
-
         [PXDefault()]
         [InventoryRaw(IsKey = true, DisplayName = "Inventory ID")]
         [PXSelector(typeof(InventoryItem.inventoryCD),
@@ -245,7 +235,6 @@ namespace PX.Objects.IN
         #endregion CacheAttached
 
         #region Event Handlers
-
         protected virtual void AttributeCaptions_RowSelected(PXCache sender, PXRowSelectedEventArgs e)
         {
             AttributeCaptions row = (AttributeCaptions)e.Row;
@@ -335,203 +324,9 @@ namespace PX.Objects.IN
             if (current == null)
                 e.Cancel = true;
         }
-
-        //protected virtual void CSAnswers_Value_FieldSelecting(PXCache sender, PXFieldSelectingEventArgs e)
-        //{
-        //    CSAnswers row = (CSAnswers)e.Row;
-
-        //    if (row == null) return;
-
-        //    CSAttribute attribute = PXSelect<CSAttribute, Where<CSAttribute.attributeID, Equal<Required<CSAnswers3.attributeID>>>>
-        //                           .Select(Base, row.AttributeID);
-
-        //    InventoryItem invItem = PXSelect<InventoryItem, Where<InventoryItem.noteID, Equal<Required<InventoryItem.noteID>>>>
-        //                            .Select(Base, row.RefNoteID);
-
-        //    if (attribute != null && invItem != null)
-        //    {
-        //        string _FieldName = "Value";
-
-        //        switch (attribute.ControlType)
-        //        {
-        //            case 1: //Text
-        //                e.ReturnState = PXStringState.CreateInstance(e.ReturnState, null, null, _FieldName, null, null, "", null, null, null, null);
-        //                e.IsAltered = true;
-        //                break;
-
-        //            case 2: //Combo
-        //            case 6: //MultiSelectCombo
-
-        //                List<string> values = new List<string>();
-        //                List<string> labels = new List<string>();
-
-        //                List<string> salesCategories = new List<string>();  ////List to hold the CategoryId which are added to the Sales Category. This is used for eleminating duplicates
-
-        //                foreach (INItemCategory SalesCategory in PXSelect<INItemCategory, Where<INItemCategory.inventoryID, Equal<Required<INItemCategory.inventoryID>>>>.Select(Base, invItem.InventoryID))
-        //                {
-        //                    if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) != true)
-        //                    {
-        //                        salesCategories.Add(SalesCategory.CategoryID.ToString());
-        //                    }
-        //                }
-
-        //                foreach (INItemCategory SalesCategory in Base.Category.Cache.Cached)
-        //                {
-        //                    PXEntryStatus status = Base.Category.Cache.GetStatus(SalesCategory);
-
-        //                    if (status == PXEntryStatus.Inserted || status == PXEntryStatus.Notchanged)
-        //                    {
-        //                        if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) != true)
-        //                        {
-        //                            salesCategories.Add(SalesCategory.CategoryID.ToString());
-        //                        }
-        //                    }
-        //                    if (status == PXEntryStatus.Modified || status == PXEntryStatus.Updated)
-        //                    {
-        //                        if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) != true)
-        //                        {
-        //                            salesCategories.Add(SalesCategory.CategoryID.ToString());
-        //                        }
-        //                    }
-        //                    if (status == PXEntryStatus.Deleted || status == PXEntryStatus.InsertedDeleted)
-        //                    {
-        //                        if (salesCategories.Contains(SalesCategory.CategoryID.ToString()) == true)
-        //                        {
-        //                            salesCategories.Remove(SalesCategory.CategoryID.ToString());
-        //                        }
-        //                    }
-        //                }
-
-        //                //To handle the below scenarios
-        //                // 1. when retriving the saved record of attributes the the id were shown instead of attribute discription.
-        //                //2. The changes to the sales category grid, should refresh attibute even before saving by using the values in caches.
-
-
-
-        //                //CRCustomAttribute.Attribute attr;
-        //                //CRCustomAttribute.Attributes.TryGetValue(attribute.AttributeID, out attr);
-
-        //                //if (attr != null)
-        //                //{
-        //                //    foreach (CRCustomAttribute.AttributeValue detail in attr.Values)
-        //                //    {
-        //                //        if (detail.CategoryID != null)
-        //                //        {
-        //                //            string[] attributeValCategories = detail.CategoryID.Split(',');
-
-        //                //            for (int i = 0; i < attributeValCategories.Length; i++)
-        //                //            {
-        //                //                for (int j = 0; j < salesCategories.Count; j++)
-        //                //                {
-        //                //                    if (salesCategories[j].ToString() == attributeValCategories[i].ToString())
-        //                //                    {
-        //                //                        if (values.Contains(detail.ValueID.ToString()) != true)
-        //                //                        {
-        //                //                            values.Add(detail.ValueID);
-        //                //                            labels.Add(detail.Description);
-        //                //                        }
-        //                //                    }
-        //                //                }
-        //                //            }
-        //                //        }
-
-
-        //                //        if (Base.Category.Cache.Current == null)
-        //                //        {
-        //                //            if (row.Value != null)
-        //                //            {
-        //                //                string[] val = row.Value.Split(',');
-
-        //                //                for (int i = 0; i < val.Length; i++)
-        //                //                {
-        //                //                    if (val[i].ToString() == detail.ValueID.ToString())
-        //                //                    {
-        //                //                        if (values.Contains(detail.ValueID.ToString()) != true)
-        //                //                        {
-        //                //                            values.Add(detail.ValueID);
-        //                //                            labels.Add(detail.Description);
-        //                //                        }
-        //                //                    }
-        //                //                }
-        //                //            }
-        //                //        }
-        //                //    }
-
-        //                //}
-
-        //                //foreach (CSAttributeDetail detail in this.AttributeDetails.Select(attribute.AttributeID))
-        //                //{
-        //                //    CSAttributeDetailExt detailsExt = AttributeDetails.Cache.GetExtension<CSAttributeDetailExt>(detail);
-
-        //                //    if (detailsExt != null)
-        //                //    {
-        //                //        if (detailsExt.UsrSBSalesCategories != null)
-        //                //        {
-        //                //            string[] attributeValCategories = detailsExt.UsrSBSalesCategories.Split(',');
-
-        //                //            for (int i = 0; i < attributeValCategories.Length; i++)
-        //                //            {
-        //                //                for (int j = 0; j < salesCategories.Count; j++)
-        //                //                {
-        //                //                    if (salesCategories[j].ToString() == attributeValCategories[i].ToString())
-        //                //                    {
-        //                //                        if (values.Contains(detail.ValueID.ToString()) != true)
-        //                //                        {
-        //                //                            values.Add(detail.ValueID);
-        //                //                            labels.Add(detail.Description);
-        //                //                        }
-        //                //                    }
-        //                //                }
-        //                //            }
-        //                //        }
-        //                //    }
-
-        //                //    if (Base.Category.Cache.Current == null)
-        //                //    {
-        //                //        if (row.Value != null)
-        //                //        {
-        //                //            string[] val = row.Value.Split(',');
-
-        //                //            for (int i = 0; i < val.Length; i++)
-        //                //            {
-        //                //                if (val[i].ToString() == detail.ValueID.ToString())
-        //                //                {
-        //                //                    if (values.Contains(detail.ValueID.ToString()) != true)
-        //                //                    {
-        //                //                        values.Add(detail.ValueID);
-        //                //                        labels.Add(detail.Description);
-        //                //                    }
-        //                //                }
-        //                //            }
-        //                //        }
-        //                //    }
-        //                //}
-
-        //                e.ReturnState = PXStringState.CreateInstance(e.ReturnState, 510, null, _FieldName, null, null, null, values.ToArray(), labels.ToArray(), true, null);
-        //                e.IsAltered = true;
-
-        //                if (attribute.ControlType == 6)
-        //                    ((PXStringState)e.ReturnState).MultiSelect = true;
-        //                break;
-
-        //            case 4: //CheckBox
-        //                e.ReturnState = PXFieldState.CreateInstance(e.ReturnState, typeof(Boolean), false, null, -1, null, null, null, _FieldName, null, null, null, PXErrorLevel.Undefined, null, null, null, PXUIVisibility.Undefined, null, null, null);
-        //                e.IsAltered = true;
-        //                break;
-
-        //            case 5: //Datetime
-        //                e.ReturnState = PXDateState.CreateInstance(e.ReturnState, _FieldName, null, null, "d", "d", null, null);
-        //                e.IsAltered = true;
-        //                break;
-        //        }
-        //    }
-        //}
-
-
         #endregion Event Handler
 
         #region Methods
-
         private PXResultset<CSAnswers, CSAttributeGroup, CSAttributeDetail2> GenerateAttributeList(int attributeNum)
         {
             PXResultset<CSAnswers, CSAttributeGroup, CSAttributeDetail2> list = new PXResultset<CSAnswers, CSAttributeGroup, CSAttributeDetail2>();
@@ -563,8 +358,6 @@ namespace PX.Objects.IN
                     if (answerCheck == null)
                     {
                         CSAnswers newAnswer = new CSAnswers();
-                       // newAnswer.EntityType = "IN";
-                      //  newAnswer.EntityID = current.InventoryID;
                         newAnswer.AttributeID = attribute.AttributeID;
                         newAnswer.Value = string.Empty;
                         newAnswer.Order = attribute.SortOrder;
@@ -576,37 +369,7 @@ namespace PX.Objects.IN
                         list.Add(new PXResult<CSAnswers, CSAttributeGroup, CSAttributeDetail2>(answerCheck, attribute, detail));
                 }
             }
-
             return list;
-        }
-
-        private string GenerateImageURL()
-        {
-            StringBuilder url = new StringBuilder();
-
-            InventoryItem currentItem = Base.Item.Current;
-            InventoryItemExtn currentItemExt = Base.Item.Current.GetExtension<InventoryItemExtn>();
-            INSetupExt setupExt = Base.insetup.Current.GetExtension<INSetupExt>();
-            string sku = currentItemExt.UsrParentSKUID;
-
-            if (!string.IsNullOrWhiteSpace(setupExt.UsrImageURL) && !string.IsNullOrWhiteSpace(sku))
-            {
-                url.Append(setupExt.UsrImageURL.Trim());
-
-                if (url.ToString().Substring(url.Length - 1) != "/")
-                    url.Append("/");
-
-                url.Append(sku[0]);
-                url.Append("/");
-                url.Append(sku[1]);
-                url.Append("/");
-                url.Append(sku[2]);
-                url.Append("/");
-                url.Append(sku.Trim());
-                url.Append("_Tm.jpg");
-            }
-
-            return url.ToString();
         }
 
         #endregion Methods
@@ -618,7 +381,6 @@ namespace PX.Objects.IN
     [Serializable]
     public class AttributeCaptions : IBqlTable
     {
-
         #region Caption1
         [PXString(60, IsUnicode = true)]
         [PXUIField(DisplayName = "Caption1", Enabled = false, Visible = false)]
@@ -681,31 +443,12 @@ namespace PX.Objects.IN
         public virtual string Caption9 { get; set; }
         public abstract class caption9 : IBqlField { }
         #endregion
-
-        #region ItemImageURL
-        [PXString(255, IsUnicode = true)]
-        [PXUIField(DisplayName = "Image URL")]
-        public virtual string ItemImageURL { get; set; }
-        public abstract class itemImageURL : IBqlField { }
-        #endregion
-
     }
 
     [Serializable]
     [PXPossibleRowsList(typeof(CSAttribute.description), typeof(CSAnswers3.attributeID), typeof(CSAnswers3.value))]
     public class CSAnswers3 : CSAnswers
     {
-        // Upgrade Change 5.30 to 6.10 - Removed  entityType & EntityID and added refNoteID
-
-        //   public new abstract class entityType : IBqlField, IBqlOperand { }
-        //[PXDBInt(IsKey = true)]
-        //[PXDBDefault(typeof(Search<InventoryItem.inventoryID,
-        //                                                     Where<InventoryItem.inventoryID, Equal<Current<InventoryItem.inventoryID>>>>))]
-        ////public override int? EntityID { get; set; }
-        //public new abstract class entityID : IBqlField, IBqlOperand { }
-        // public override Guid? EntityID { get; set; }
-        // public new abstract class entityID : IBqlField, IBqlOperand { }
-
         [PXDBString(10, InputMask = "", IsKey = true, IsUnicode = true)]
         [PXDefault]
         [PXUIField(DisplayName = "Attribute", Enabled = false)]
@@ -730,11 +473,9 @@ namespace PX.Objects.IN
     [Serializable]
     public class CSAttributeDetail2 : CSAttributeDetail
     {
-
+ 
         [PXDBString(10, IsKey = true)]
-        //[PXDBLiteDefault(typeof(CSAttribute.attributeID))]
         [PXUIField(DisplayName = "Attribute ID")]
-        //[PXParent(typeof(Select<CSAttribute, Where<CSAttribute.attributeID, Equal<Current<CSAttributeDetail2.attributeID>>>>))]
         public override string AttributeID { get; set; }
         public new abstract class attributeID : IBqlField, IBqlOperand { }
 
@@ -759,8 +500,7 @@ namespace PX.Objects.IN
         public new abstract class lastModifiedByScreenID : IBqlField, IBqlOperand { }
 
         public new abstract class lastModifiedDateTime : IBqlField, IBqlOperand { }
-
+   
     }
-
     #endregion Classes
 }

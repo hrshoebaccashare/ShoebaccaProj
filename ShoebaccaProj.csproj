@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ShoebaccaProj</RootNamespace>
     <AssemblyName>ShoebaccaProj</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>C:\Program Files %28x86%29\Acumatica ERP\Shoebacca181030022\Bin\</OutputPath>
+    <OutputPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -31,23 +31,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FusionCore">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\FusionCore.dll</HintPath>
-    </Reference>
-    <Reference Include="KN.SI.Extensibility5302046">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\KN.SI.Extensibility5302046.dll</HintPath>
-    </Reference>
-    <Reference Include="PX.Api.ContractBased.Common">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Api.ContractBased.Common.dll</HintPath>
+    <Reference Include="ProductConfigurator">
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\ProductConfigurator.dll</HintPath>
     </Reference>
     <Reference Include="PX.Common">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Common.dll</HintPath>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Common.dll</HintPath>
     </Reference>
     <Reference Include="PX.Data">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Data.dll</HintPath>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="PX.Data.BQL.Fluent, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3b136cac2f602b8e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Data.BQL.Fluent.dll</HintPath>
     </Reference>
     <Reference Include="PX.Objects">
-      <HintPath>D:\Program Files (x86)\Acumatica ERP\Shoebacca18.103.0022\Bin\PX.Objects.dll</HintPath>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Objects.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,18 +56,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSAttributeMaint.cs" />
     <Compile Include="DAC\CSAttributeGroupExt.cs" />
     <Compile Include="DAC\INSetupExt.cs" />
+    <Compile Include="DAC\INSiteExt.cs" />
     <Compile Include="DAC\PX_Objects_CS_CSAttributeDetail_extensions.cs" />
     <Compile Include="DAC\PX_Objects_IN_InventoryItem_extensions.cs" />
-    <Compile Include="Descriptor\PCBAttributes.cs" />
-    <Compile Include="Descriptor\PCBConst.cs" />
-    <Compile Include="CustomItemValidationInq.cs" />
     <Compile Include="DAC\POReceiptPackages.cs" />
     <Compile Include="DAC\SOOrderShipmentExt.cs" />
-    <Compile Include="InventoryItemMaintExtPCB.cs" />
+    <Compile Include="Descriptor\Messages.cs" />
+    <Compile Include="Descriptor\PCBAttributes.cs" />
+    <Compile Include="Descriptor\PCBConst.cs" />
+    <Compile Include="InventoryItemDropshipValidationsExt.cs" />
+    <Compile Include="InventoryItemMerchandisingExt.cs" />
     <Compile Include="POReceiptEntryExt.cs" />
+    <Compile Include="SOOrderEntryExt.cs" />
     <Compile Include="SOShipmentEntryExt.cs" />
     <Compile Include="POOrderExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
