@@ -56,47 +56,47 @@ namespace ShoebaccaProj
                 {
                     if (row.ShipmentWeight < 1)
                     {
-                        newShipVia = "FIRSTCLASS";
+                        newShipVia = "SEFCM";
                     }
                     else
                     {
-                        newShipVia = "IRVSPOST";
+                        newShipVia = "SESMTIRV";
                     }
                 }
                 else if (row.ShipVia == "FREESHIP" && warehouseSiteCD == "CLKSVL")
                 {
                     if (row.ShipmentWeight < 1)
                     {
-                        newShipVia = "FIRSTCLASS"; //There's no distinct ship via for USPS and CLKSVL...
+                        newShipVia = "SEFCM"; //There's no distinct ship via for USPS and CLKSVL...
                     }
                     else
                     {
-                        newShipVia = "CLKSPOST";
+                        newShipVia = "SESMTCLK";
                     }
                 }
                 else if (row.ShipVia == "GROUND" && warehouseSiteCD == "SHOEBACCA")
                 {
-                    newShipVia = "IRVUPSGND";
+                    newShipVia = "SEGNDIRV";
                 }
                 else if (row.ShipVia == "GROUND" && warehouseSiteCD == "CLKSVL")
                 {
-                    newShipVia = "CLKUPSGND";
+                    newShipVia = "SEGNDCLK";
                 }
                 else if (row.ShipVia == "2DAY" && warehouseSiteCD == "SHOEBACCA")
                 {
-                    newShipVia = "IRVUPS2DAY";
+                    newShipVia = "SE2NDIRV";
                 }
                 else if (row.ShipVia == "2DAY" && warehouseSiteCD == "CLKSVL")
                 {
-                    newShipVia = "CLKUPS2DAY";
+                    newShipVia = "SE2NDCLK";
                 }
                 else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "SHOEBACCA")
                 {
-                    newShipVia = "IRVUPSON";
+                    newShipVia = "SENDAIRV";
                 }
                 else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "CLKSVL")
                 {
-                    newShipVia = "CLKUPSON";
+                    newShipVia = "SENDACLK";
                 }
 
                 if (newShipVia != null)
