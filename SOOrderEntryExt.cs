@@ -88,7 +88,15 @@ namespace PXDropShipPOExtPkg
                         }
                         if (Base.soparamfilter.Current.SiteID != null || adapter.MassProcess)
                         {
-                            Base.Save.Press();
+                            try
+                            {
+                                Base.RecalculateExternalTaxesSync = true;
+                                Base.Save.Press();
+                            }
+                            finally
+                            {
+                                Base.RecalculateExternalTaxesSync = false;
+                            }
                             PXAutomation.RemovePersisted(Base, typeof(SOOrder), new List<object>(list));
 
                             SOParamFilter filter = Base.soparamfilter.Current;
@@ -96,7 +104,7 @@ namespace PXDropShipPOExtPkg
                             {
                                 bool anyfailed = false;
                                 SOShipmentEntry docgraph = PXGraph.CreateInstance<SOShipmentEntry>();
-                                SOOrderEntry ordergraph = PXGraph.CreateInstance<SOOrderEntry>();
+                                SOOrderEntry ordgraph = PXGraph.CreateInstance<SOOrderEntry>();
                                 DocumentList<SOShipment> created = new DocumentList<SOShipment>(docgraph);
 
                                 //address AC-92776
@@ -110,7 +118,7 @@ namespace PXDropShipPOExtPkg
 
                                     try
                                     {
-                                        ReviewWarehouseAvailability(ordergraph, order);
+                                        ReviewWarehouseAvailability(ordgraph, order);
                                     }
                                     catch (Exception ex)
                                     {
@@ -146,10 +154,6 @@ namespace PXDropShipPOExtPkg
                                             {
                                                 PXTimeStampScope.SetRecordComesFirst(typeof(SOOrder), true);
                                                 docgraph.CreateShipment(order, SiteID, filter.ShipDate, adapter.MassProcess, operation, created, adapter.QuickProcessFlow);
-                                                PXAutomation.CompleteSimple(docgraph.Document.View);
-                                                var items = new List<object> { order };
-                                                PXAutomation.RemovePersisted(docgraph, typeof(SOOrder), items);
-                                                PXAutomation.RemoveProcessing(docgraph, typeof(SOOrder), items);
                                                 ts.Complete();
                                             }
 
@@ -167,18 +171,29 @@ namespace PXDropShipPOExtPkg
                                             }
                                             order.LastSiteID = SiteID;
                                             order.LastShipDate = filter.ShipDate;
+                                            order.Status = SOOrderStatus.Shipping;
 
                                             docgraph.Clear();
 
-                                            List<object> failed = new List<object>();
-                                            failed.Add(order);
-                                            PXAutomation.StorePersisted(docgraph, typeof(SOOrder), failed);
+                                            var ordergraph = PXGraph.CreateInstance<SOOrderEntry>();
+                                            ordergraph.Clear();
 
-                                            PXAutomation.CompleteAction(docgraph);
-                                            PXAutomation.RemovePersisted(docgraph, typeof(SOOrder), failed);
+                                            ordergraph.Document.Cache.MarkUpdated(order);
+                                            PXAutomation.CompleteSimple(ordergraph.Document.View);
+                                            try
+                                            {
+                                                ordergraph.Save.Press();
+                                                PXAutomation.RemovePersisted(ordergraph, order);
 
-                                            PXTrace.WriteInformation(ex);
-                                            PXProcessing<SOOrder>.SetWarning(ex);
+                                                PXTrace.WriteInformation(ex);
+                                                PXProcessing<SOOrder>.SetWarning(ex);
+                                            }
+                                            catch (Exception inner)
+                                            {
+                                                Base.Caches[typeof(SOOrder)].RestoreCopy(order, ordercopy);
+                                                PXProcessing<SOOrder>.SetError(inner);
+                                                anyfailed = true;
+                                            }
                                         }
                                         catch (Exception ex)
                                         {
