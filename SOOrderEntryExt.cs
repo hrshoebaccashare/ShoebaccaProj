@@ -351,7 +351,17 @@ namespace PXDropShipPOExtPkg
                 }
 
                 //Save the order
-                orderEntryGraph.Actions.PressSave();
+                ty
+				{
+					orderEntryGraph.RecalculateExternalTaxesSync = true;
+					orderEntryGraph.Actions.PressSave();
+				}
+				finally
+				{
+					orderEntryGraph.RecalculateExternalTaxesSync = false;
+				}
+                
+                order = orderEntryGraph.Document.Current;
             }
         }
 
