@@ -349,7 +349,14 @@ namespace PXDropShipPOExtPkg
                         }
                     }
                 }
-
+                
+                //We do not want to recalculate taxes here. We'll have recalculation and write off when Invoice is created
+                //So we restore all the tax flags to their initial values
+                orderEntryGraph.Document.Current.IsTaxValid = order.IsTaxValid;
+                orderEntryGraph.Document.Current.IsOpenTaxValid = order.IsOpenTaxValid;
+                orderEntryGraph.Document.Current.IsUnbilledTaxValid = order.IsUnbilledTaxValid;
+                orderEntryGraph.Document.Current.IsFreightTaxValid = order.IsFreightTaxValid;
+                
                 //Save the order
                 orderEntryGraph.Actions.PressSave();
             }
