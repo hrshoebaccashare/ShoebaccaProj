@@ -11,5 +11,7 @@ namespace ShoebaccaProj
         public const string DropShipDiscountPercentage = "Drop Ship Discount %";
         public const string DropShipItemHandlingFee = "Drop Ship Item Handling Fee";
         public const string DropShipOrderHandlingFee = "Drop Ship Order Handling Fee";
+
+        public const string CalendarGoodsMoveDaysNotConfigured = "You must check at least one day in the calendar where goods are moved.";
     }
 }

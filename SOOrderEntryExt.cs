@@ -15,7 +15,7 @@ using PX.Objects.SO;
 using PX.Objects.CS;
 using static ShoebaccaProj.PCBConst;
 
-namespace PXDropShipPOExtPkg
+namespace ShoebaccaProj
 {
     public class SOOrderEntryExt : PXGraphExtension<SOOrderEntry>
     {
@@ -410,6 +410,20 @@ namespace PXDropShipPOExtPkg
             else
             {
                 return 0;
+            }
+        }
+
+        protected void SOOrder_UsrOrderPlacedTimestamp_FieldUpdated(PXCache sender, PXFieldUpdatedEventArgs e)
+        {
+            const string CalendarID = "SBWHSE";
+
+            //Calculate expected ship date based on when the order was originally received (on shoebacca.com, Amazon, etc. -- not when it was pushed to Acumatica)
+            var order = (SOOrder)e.Row;
+            var orderExt = (SOOrderExt) sender.GetExtension<SOOrderExt>(order);
+
+            if(orderExt.UsrOrderPlacedTimestamp != null)
+            {
+                sender.SetValue<SOOrder.shipDate>(order, CalendarHelper.GetClosestWarehouseDay(Base, CalendarID, orderExt.UsrOrderPlacedTimestamp.Value));
             }
         }
     }

@@ -57,12 +57,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CalendarHelper.cs" />
     <Compile Include="DAC\CSAttributeGroupExt.cs" />
+    <Compile Include="DAC\CSCalendarExt.cs" />
     <Compile Include="DAC\INSetupExt.cs" />
     <Compile Include="DAC\INSiteExt.cs" />
     <Compile Include="DAC\PX_Objects_CS_CSAttributeDetail_extensions.cs" />
     <Compile Include="DAC\PX_Objects_IN_InventoryItem_extensions.cs" />
     <Compile Include="DAC\POReceiptPackages.cs" />
+    <Compile Include="DAC\SOOrderExt.cs" />
     <Compile Include="DAC\SOOrderShipmentExt.cs" />
     <Compile Include="Descriptor\Messages.cs" />
     <Compile Include="Descriptor\PCBAttributes.cs" />
