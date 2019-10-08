@@ -5,6 +5,28 @@ VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShoebaccaProj", "ShoebaccaProj.csproj", "{B092520B-9868-41BE-8D56-28D2B808CA22}"
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Shoebacca", "http://localhost/Shoebacca", "{95F20EFA-AC5F-49BB-A52C-6EA2C7C706F6}"
+	ProjectSection(WebsiteProperties) = preProject
+		UseIISExpress = "false"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5.2"
+		ProjectReferences = "{b092520b-9868-41be-8d56-28d2b808ca22}|ShoebaccaProj.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/Shoebacca"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\Program Files\Acumatica ERP\Shoebacca\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\Shoebacca\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/Shoebacca"
+		Release.AspNetCompiler.PhysicalPath = "..\..\Program Files\Acumatica ERP\Shoebacca\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\Shoebacca\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		SlnRelativePath = "..\..\Program Files\Acumatica ERP\Shoebacca\"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +37,10 @@ Global
 		{B092520B-9868-41BE-8D56-28D2B808CA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B092520B-9868-41BE-8D56-28D2B808CA22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B092520B-9868-41BE-8D56-28D2B808CA22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95F20EFA-AC5F-49BB-A52C-6EA2C7C706F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95F20EFA-AC5F-49BB-A52C-6EA2C7C706F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95F20EFA-AC5F-49BB-A52C-6EA2C7C706F6}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{95F20EFA-AC5F-49BB-A52C-6EA2C7C706F6}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

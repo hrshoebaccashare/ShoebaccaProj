@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using PX.Data;
 using PX.Objects.AP;
 using PX.Objects.AR;
@@ -9,22 +10,52 @@ using PX.Objects.IN;
 using PX.Objects.SO;
 using PX.Objects.PO;
 using PX.TM;
-
+using System.Collections.Generic;
+using PX.CarrierService;
+using System.Threading.Tasks;
+using System.Reflection;
+using System.Diagnostics;
+using PX.Objects.CM;
 
 namespace ShoebaccaProj
 {
 	public class SOShipmentEntryExt : PXGraphExtension<SOShipmentEntry>
 	{
 		public PXSelect<SOPackageDetail,
-											Where<SOPackageDetail.shipmentNbr, Equal<Required<SOPackageDetail.shipmentNbr>>>,
-											OrderBy<Asc<SOPackageDetail.lineNbr>>> FirstTrackingNumber;
+			Where<SOPackageDetail.shipmentNbr, Equal<Required<SOPackageDetail.shipmentNbr>>>,
+			OrderBy<Asc<SOPackageDetail.lineNbr>>> FirstTrackingNumber;
 
 		public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>> OrderShipment;
 
-		[PXOverride]
-		public void ConfirmShipment(SOOrderEntry docgraph, SOShipment shiporder, Action<SOOrderEntry, SOShipment> method)
+        [PXOverride]
+        public void ShipPackages(SOShipment shiporder, Action<SOShipment> baseMethod)
+        {
+            if (shiporder.Operation == SOOperation.Issue)
+            {
+                if (String.IsNullOrEmpty(shiporder.ShipVia) || shiporder.ShipVia == "FREESHIP" || shiporder.ShipVia == "GROUND" || shiporder.ShipVia == "OVERNIGHT" || shiporder.ShipVia == "2DAY")
+                {
+                    Base.Clear();
+                    Base.Document.Current = Base.Document.Search<SOShipment.shipmentNbr>(shiporder.ShipmentNbr);
+                    
+                    SOPackageDetail p = Base.Packages.SelectSingle();
+                    if (p == null) throw new PXException(PX.Objects.SO.Messages.PackageIsRequired);
+                    
+                    SelectLeastExpensiveShipVia(shiporder);
+                }
+                else
+                {
+                    PXTrace.WriteInformation("Skipping rate shopping because a Ship Via is already selected.");
+                }
+            }
+
+            baseMethod(shiporder);
+        }
+
+        [PXOverride]
+		public void ConfirmShipment(SOOrderEntry docgraph, SOShipment shiporder, Action<SOOrderEntry, SOShipment> baseMethod)
 		{
-			method(docgraph, shiporder);
+            baseMethod(docgraph, shiporder);
+
 			SOPackageDetail TNbr = FirstTrackingNumber.Select(shiporder.ShipmentNbr);
 			if (TNbr != null)
 			{
@@ -38,77 +69,121 @@ namespace ShoebaccaProj
 			}
 		}
 
-        public virtual void SOShipment_RowPersisting(PXCache sender, PXRowPersistingEventArgs e)
+        private void SelectLeastExpensiveShipVia(SOShipment shiporder)
         {
-            if ((e.Operation & PXDBOperation.Command) == PXDBOperation.Delete) return;
+            PXTrace.WriteInformation("Starting rate shopping.");
 
-            SOShipment row = e.Row as SOShipment;
-            INSite warehouse = PXSelectorAttribute.Select<SOShipment.siteID>(sender, row) as INSite;
-
-            if (warehouse != null)
+            DateTime? deliverBy = null;
+            bool isPrimeOrder = false;
+            foreach (PXResult<SOOrderShipment, SOOrder, CurrencyInfo, SOAddress, SOContact> result in Base.OrderList.Select())
             {
-                //Apply logic and try to find the corresponding ship via for this warehouse.
-                //Logic is hardcoded but simpler/cheaper to maintain at this point.
-                string warehouseSiteCD = warehouse.SiteCD.TrimEnd();
-                string newShipVia = null;
-
-                if (row.ShipVia == "FREESHIP" && warehouseSiteCD == "SHOEBACCA")
+                var order = (SOOrder)result;
+                var orderExt = order.GetExtension<SOOrderExt>();
+                if (orderExt.UsrDeliverByDate < deliverBy || deliverBy == null)
                 {
-                    if (row.ShipmentWeight < 1)
+                    deliverBy = orderExt.UsrDeliverByDate;
+                }
+                
+                //Note: the existing Kensium ABS customization has the UsrISPrimeOrder flag in the shipment too, and it's passed from the SO to the Shipment. We're not using it.
+                if(orderExt.UsrISPrimeOrder == true)
+                {
+                    PXTrace.WriteInformation("This shipment is for a prime order.");
+                    isPrimeOrder = true;
+                }
+            }
+
+            List<CarrierRequestInfo> requests = new List<CarrierRequestInfo>();
+            var plugins = GetCarrierPluginsForAutoRateShopping();
+
+            var carrierRatesExt = Base.GetExtension<SOShipmentEntry.CarrierRates>();
+            MethodInfo buildQuoteRequestMethod = carrierRatesExt.GetType().GetMethod("BuildQuoteRequest", BindingFlags.NonPublic | BindingFlags.Instance); //Unfortunately not exposed by SOShipmentEntry.CarrierRates...
+
+            foreach (CarrierPlugin plugin in plugins)
+            {
+                //Skip if carrier plugin is specific to a site
+                if (plugin.SiteID != null && plugin.SiteID != shiporder.SiteID) continue;
+                if (isPrimeOrder && plugin.GetExtension<CarrierPluginExt>().UsrUseForPrimeOrders != true) continue;
+                
+                ICarrierService cs = CarrierPluginMaint.CreateCarrierService(Base, plugin);
+                CarrierRequest cr = (CarrierRequest) buildQuoteRequestMethod.Invoke(carrierRatesExt, new object[] { carrierRatesExt.Documents.Cache.GetExtension<PX.Objects.SO.GraphExtensions.CarrierRates.Document>(shiporder), plugin });
+
+                requests.Add(new CarrierRequestInfo
+                {
+                    Plugin = plugin,
+                    SiteID = shiporder.SiteID.Value,
+                    Service = cs,
+                    Request = cr
+                });
+            }
+
+            Parallel.ForEach(requests, info => info.Result = info.Service.GetRateList(info.Request));
+
+            string leastExpensiveCarrier = null;
+            string leastExpensiveMethod = null;
+            DateTime? leastExpensiveShipViaDeliveryDate = null;
+            decimal? amount = null;
+            
+            foreach (var request in requests)
+            {
+                if (!request.Result.IsSuccess) continue;
+                foreach (var rate in request.Result.Result)
+                {
+                    string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString() + " Amount: " + rate.Amount.ToString();
+
+                    if (!rate.IsSuccess) continue;
+                    if (deliverBy == null || deliverBy >= rate.DeliveryDate)
                     {
-                        newShipVia = "FIRSTCLASS";
+                        if (amount == null || rate.Amount < amount || (rate.Amount == amount && rate.DeliveryDate < leastExpensiveShipViaDeliveryDate))
+                        {
+                            leastExpensiveCarrier = request.Plugin.CarrierPluginID;
+                            leastExpensiveMethod = rate.Method.Code;
+                            amount = rate.Amount;
+                        }
                     }
                     else
                     {
-                        newShipVia = "IRVSPOST";
+                        traceMessage += " [TOO LATE]";
                     }
-                }
-                else if (row.ShipVia == "FREESHIP" && warehouseSiteCD == "CLKSVL")
-                {
-                    if (row.ShipmentWeight < 1)
-                    {
-                        newShipVia = "FIRSTCLASS"; //There's no distinct ship via for USPS and CLKSVL...
-                    }
-                    else
-                    {
-                        newShipVia = "CLKSPOST";
-                    }
-                }
-                else if (row.ShipVia == "GROUND" && warehouseSiteCD == "SHOEBACCA")
-                {
-                    newShipVia = "IRVUPSGND";
-                }
-                else if (row.ShipVia == "GROUND" && warehouseSiteCD == "CLKSVL")
-                {
-                    newShipVia = "CLKUPSGND";
-                }
-                else if (row.ShipVia == "2DAY" && warehouseSiteCD == "SHOEBACCA")
-                {
-                    newShipVia = "IRVUPS2DAY";
-                }
-                else if (row.ShipVia == "2DAY" && warehouseSiteCD == "CLKSVL")
-                {
-                    newShipVia = "CLKUPS2DAY";
-                }
-                else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "SHOEBACCA")
-                {
-                    newShipVia = "IRVUPSON";
-                }
-                else if (row.ShipVia == "OVERNIGHT" && warehouseSiteCD == "CLKSVL")
-                {
-                    newShipVia = "CLKUPSON";
-                }
 
-                if (newShipVia != null)
+                    PXTrace.WriteVerbose(traceMessage);
+                }
+            }
+
+            if(leastExpensiveCarrier == null)
+            {
+                throw new PXException(Messages.FailedToFindCarrierAndMethod);
+            }
+            else
+            {
+                PXTrace.WriteInformation($"Least expensive carrier: {leastExpensiveCarrier} method: {leastExpensiveMethod} amount: {amount}");
+
+                var carrier = (Carrier) PXSelectReadonly<Carrier,
+                    Where<Carrier.carrierPluginID, Equal<Required<Carrier.carrierPluginID>>,
+                    And<Carrier.pluginMethod, Equal<Required<Carrier.pluginMethod>>,
+                    And<Carrier.isExternal, Equal<True>>>>>.Select(Base, leastExpensiveCarrier, leastExpensiveMethod);
+
+                if(carrier == null)
                 {
-                    PXTrace.WriteInformation("ShipVia {0} remapped to {1} in warehouse {2}.", row.ShipVia, newShipVia, warehouse.SiteCD);
-                    row.ShipVia = newShipVia;
+                    throw new PXException(Messages.NoShipViaFound, leastExpensiveCarrier, leastExpensiveMethod);
                 }
                 else
                 {
-                    PXTrace.WriteInformation("ShipVia not remapped. No entry in map for ship via {0} in warehouse {1}", row.ShipVia, warehouse.SiteCD);
+                    //Set new ShipVia so that existing logic can pick it up
+                    shiporder.ShipVia = carrier.CarrierID;
+
+                    Base.Document.Current.ShipVia = carrier.CarrierID;
+                    Base.Document.Update(Base.Document.Current);
+                    Base.Document.Current.IsPackageValid = true; //Changing ShipVia will otherwise trigger package refresh
+                    Base.Document.Update(Base.Document.Current);
+
+                    Base.Save.Press();
                 }
             }
+        }
+
+        private IEnumerable<CarrierPlugin> GetCarrierPluginsForAutoRateShopping()
+        {
+            return PXSelect<CarrierPlugin, Where<CarrierPluginExt.usrUseForAutoRateShopping, Equal<True>>>.Select(Base).RowCast<CarrierPlugin>();
         }
     }
 }

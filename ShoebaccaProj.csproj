@@ -35,9 +35,14 @@
     <Reference Include="ProductConfigurator">
       <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\ProductConfigurator.dll</HintPath>
     </Reference>
+    <Reference Include="PX.CarrierService, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.CarrierService.dll</HintPath>
+    </Reference>
     <Reference Include="PX.Common">
       <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Common.dll</HintPath>
     </Reference>
+    <Reference Include="PX.CS.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="PX.Data">
       <HintPath>..\..\Program Files\Acumatica ERP\Shoebacca\Bin\PX.Data.dll</HintPath>
     </Reference>
@@ -58,6 +63,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CalendarHelper.cs" />
+    <Compile Include="CarrierRequestInfo.cs" />
+    <Compile Include="DAC\CarrierPluginExt.cs" />
     <Compile Include="DAC\CSAttributeGroupExt.cs" />
     <Compile Include="DAC\CSCalendarExt.cs" />
     <Compile Include="DAC\INSetupExt.cs" />
@@ -74,6 +81,7 @@
     <Compile Include="InventoryItemMerchandisingExt.cs" />
     <Compile Include="POReceiptEntryExt.cs" />
     <Compile Include="SOOrderEntryExt.cs" />
+    <Compile Include="SOCarrierRateShoppingExt.cs" />
     <Compile Include="SOShipmentEntryExt.cs" />
     <Compile Include="POOrderExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

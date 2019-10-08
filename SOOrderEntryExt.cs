@@ -14,6 +14,9 @@ using PX.Objects.AP;
 using PX.Objects.SO;
 using PX.Objects.CS;
 using static ShoebaccaProj.PCBConst;
+using PX.CarrierService;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace ShoebaccaProj
 {
@@ -246,12 +249,11 @@ namespace ShoebaccaProj
                 var sortedSiteList = new List<int?>();
                 var availabilityInfo = new Dictionary<Tuple<int?, int?>, decimal>();
 
-                // Get a list of warehouse (for now we rank in reverse alphabetical order, but we'd eventually like to rank based on distance with customer)
-                bool siteCanFulfillOrderCompletely = false;
+                var sitesThatCanShipComplete = new List<int>();
                 foreach (INSite site in PXSelect<INSite, Where<INSite.active, Equal<True>, And<INSiteExt.usrAllowShippingAutoSelection, Equal<True>>>, OrderBy<Desc<INSite.siteCD>>>.Select(Base))
                 {
                     sortedSiteList.Add(site.SiteID);
-                    siteCanFulfillOrderCompletely = true;
+                    bool canShipComplete = true;
 
                     // Check if current warehouse can fulfill the order *completely*
                     foreach (PXResult<SOLine, INSiteStatus> res in PXSelectJoin<SOLine,
@@ -277,30 +279,17 @@ namespace ShoebaccaProj
                         if (line.BaseOpenQty > qtyHardAvail && line.Completed.GetValueOrDefault() == false && line.IsStockItem == true)
                         {
                             PXTrace.WriteInformation("Not enough inventory available for item " + line.TranDesc + " in warehouse " + site.SiteCD + " (QtyHardAvail: " + qtyHardAvail + ")");
-                            siteCanFulfillOrderCompletely = false;
+                            canShipComplete = false;
                         }
                     }
 
-                    if (siteCanFulfillOrderCompletely)
+                    if (canShipComplete)
                     {
-                        PXTrace.WriteInformation("Warehouse " + site.SiteCD + " can fulfill order completely");
-                        foreach (SOLine line in orderEntryGraph.Transactions.Select())
-                        {
-                            if (line.Operation == SOOperation.Issue && line.Completed.GetValueOrDefault() == false && line.IsStockItem == true)
-                            {
-                                if (line.SiteID != site.SiteID)
-                                {
-                                    line.SiteID = site.SiteID;
-                                    orderEntryGraph.Transactions.Update(line);
-                                }
-                            }
-                        }
-
-                        break;
+                        sitesThatCanShipComplete.Add(site.SiteID.Value);
                     }
                 }
 
-                if (!siteCanFulfillOrderCompletely)
+                if (sitesThatCanShipComplete.Count == 0)
                 {
                     //We haven't found a single warehouse that can fulfill this order completely. Assign based on availability.
                     PXTrace.WriteInformation("No warehouse can fulfill order " + order.OrderNbr + " completely. Assigning on a per-item basis.");
@@ -349,7 +338,34 @@ namespace ShoebaccaProj
                         }
                     }
                 }
-                
+                else if(sitesThatCanShipComplete.Count == 1)
+                {
+                    //TODO: Do a rate check, and pick warehouse based on 
+                    PXTrace.WriteInformation("Warehouse " + sitesThatCanShipComplete[0] + " can fulfill order completely");
+                    AssignSiteToOpenStockItems(orderEntryGraph, sitesThatCanShipComplete[0]);
+                }
+                else
+                {
+                    PXTrace.WriteInformation("Multiple warehouses can fulfill order completely -- do a rate check");
+
+                    if (Base.Document.Current.IsManualPackage == true)
+                    {
+                        PXTrace.WriteInformation("Order is set for manual packaging. Automated Rate Shopping can't be done; selecting warehouse used the packages.");
+                        AssignSiteToOpenStockItems(orderEntryGraph, sitesThatCanShipComplete[0]);
+                    }
+                    else
+                    {
+                        var sw = new Stopwatch();
+                        sw.Start();
+
+                        var orderExt = order.GetExtension<SOOrderExt>();
+                        AssignSiteToOpenStockItems(orderEntryGraph, SelectLeastExpensiveShipWarehouse(sitesThatCanShipComplete, orderExt.UsrDeliverByDate));
+
+                        sw.Stop();
+                        PXTrace.WriteInformation($"Rate shopping took {sw.ElapsedMilliseconds}ms");
+                    }
+                }
+
                 //We do not want to recalculate taxes here. We'll have recalculation and write off when Invoice is created
                 //So we restore all the tax flags to their initial values
                 orderEntryGraph.Document.Current.IsTaxValid = order.IsTaxValid;
@@ -359,6 +375,113 @@ namespace ShoebaccaProj
                 
                 //Save the order
                 orderEntryGraph.Actions.PressSave();
+            }
+        }
+
+        private int SelectLeastExpensiveShipWarehouse(IEnumerable<int> sites, DateTime? deliverBy)
+        {
+            var carrierRatesExt = Base.GetExtension<SOOrderEntry.CarrierRates>();
+            var rateShoppingExt = Base.GetExtension<SOCarrierRateShoppingExt>();
+
+            try
+            {
+                List<CarrierRequestInfo> requests = new List<CarrierRequestInfo>();
+                rateShoppingExt.Active = true;
+
+                var plugins = GetCarrierPluginsForAutoRateShopping();
+                
+                foreach (int siteID in sites)
+                {
+                    foreach (CarrierPlugin plugin in plugins)
+                    {
+                        //Skip if carrier plugin is specific to a site
+                        if (plugin.SiteID != null && plugin.SiteID != siteID) continue;
+
+                        rateShoppingExt.OverrideSiteID = siteID;
+                        ICarrierService cs = CarrierPluginMaint.CreateCarrierService(Base, plugin);
+                        CarrierRequest cr = carrierRatesExt.BuildQuoteRequest(Base.Document.Current, plugin);
+                        
+                        requests.Add(new CarrierRequestInfo
+                        {
+                            Plugin = plugin,
+                            SiteID = siteID,
+                            Service = cs,
+                            Request = cr
+                        });
+                    }
+                }
+
+                Parallel.ForEach(requests, info => info.Result = info.Service.GetRateList(info.Request));
+
+                int? leastExpensiveSiteID = null;
+                decimal? amount = null;
+
+                Random rand = new Random();
+                foreach (var request in requests)
+                {
+                    if (!request.Result.IsSuccess) continue;
+                    foreach (var rate in request.Result.Result)
+                    {
+                        string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + (rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString()) + " Amount: " + rate.Amount.ToString();
+
+                        if (!rate.IsSuccess) continue;
+                        if(deliverBy == null || deliverBy >= rate.DeliveryDate)
+                        {
+                            if (amount == null || rate.Amount < amount)
+                            {
+                                leastExpensiveSiteID = request.SiteID;
+                                amount = rate.Amount;
+                            }
+                            else if(amount == rate.Amount && request.SiteID != leastExpensiveSiteID)
+                            {
+                                PXTrace.WriteInformation("Same rate found for another site - decide if we use the other site based on random (could be based on actual workload by warehouse instead...)");
+                                if (rand.NextDouble() >= 0.5)
+                                {
+                                    leastExpensiveSiteID = request.SiteID;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            traceMessage += " [TOO LATE]";
+                        }
+
+                        PXTrace.WriteInformation(traceMessage);
+                    }
+                }
+
+                if(leastExpensiveSiteID == null)
+                {
+                    throw new PXException(Messages.FailedToFindShipFromWarehouseAndCarrier);
+                }
+                else
+                {
+                    return leastExpensiveSiteID.Value;
+                }
+            }
+            finally
+            {
+                rateShoppingExt.Active = false;
+            }
+        }
+
+        private IEnumerable<CarrierPlugin> GetCarrierPluginsForAutoRateShopping()
+        {
+            return PXSelect<CarrierPlugin, Where<CarrierPluginExt.usrUseForAutoRateShopping, Equal<True>>>.Select(Base).RowCast<CarrierPlugin>();
+        }
+
+        private void AssignSiteToOpenStockItems(SOOrderEntry graph, int? siteID)
+        {
+            foreach (SOLine line in graph.Transactions.Select())
+            {
+                if (line.Operation == SOOperation.Issue && line.Completed.GetValueOrDefault() == false && line.IsStockItem == true)
+                {
+                    if (line.SiteID != siteID)
+                    {
+                        line.SiteID = siteID;
+                        graph.Transactions.Update(line);
+                    }
+                }
             }
         }
 
@@ -415,16 +538,15 @@ namespace ShoebaccaProj
 
         protected void SOOrder_UsrOrderPlacedTimestamp_FieldUpdated(PXCache sender, PXFieldUpdatedEventArgs e)
         {
-            const string CalendarID = "SBWHSE";
+            const string DefaultCalendarID = "SBWHSE";
 
             //Calculate expected ship date based on when the order was originally received (on shoebacca.com, Amazon, etc. -- not when it was pushed to Acumatica)
             var order = (SOOrder)e.Row;
-            var orderExt = (SOOrderExt) sender.GetExtension<SOOrderExt>(order);
-
-            if(orderExt.UsrOrderPlacedTimestamp != null)
+            var orderExt = (SOOrderExt)sender.GetExtension<SOOrderExt>(order);
+            if (orderExt.UsrOrderPlacedTimestamp != null)
             {
-                sender.SetValue<SOOrder.shipDate>(order, CalendarHelper.GetClosestWarehouseDay(Base, CalendarID, orderExt.UsrOrderPlacedTimestamp.Value));
+                sender.SetValue<SOOrder.shipDate>(order, CalendarHelper.GetClosestWarehouseDay(Base, DefaultCalendarID, orderExt.UsrOrderPlacedTimestamp.Value));
             }
-        }
+        }        
     }
 }
