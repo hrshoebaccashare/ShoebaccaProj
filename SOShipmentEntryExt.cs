@@ -74,6 +74,7 @@ namespace ShoebaccaProj
             PXTrace.WriteInformation("Starting rate shopping.");
 
             DateTime? deliverBy = null;
+            bool guaranteedDelivery = false;
             bool isPrimeOrder = false;
             foreach (PXResult<SOOrderShipment, SOOrder, CurrencyInfo, SOAddress, SOContact> result in Base.OrderList.Select())
             {
@@ -81,7 +82,13 @@ namespace ShoebaccaProj
                 var orderExt = order.GetExtension<SOOrderExt>();
                 if (orderExt.UsrDeliverByDate < deliverBy || deliverBy == null)
                 {
+                    //If there's more than one order linked to this shipment, we keep the earliest delivery by date
                     deliverBy = orderExt.UsrDeliverByDate;
+                }
+
+                if(orderExt.UsrGuaranteedDelivery == true)
+                {
+                    guaranteedDelivery = true;
                 }
                 
                 //Note: the existing Kensium ABS customization has the UsrISPrimeOrder flag in the shipment too, and it's passed from the SO to the Shipment. We're not using it.
@@ -102,7 +109,7 @@ namespace ShoebaccaProj
             {
                 //Skip if carrier plugin is specific to a site
                 if (plugin.SiteID != null && plugin.SiteID != shiporder.SiteID) continue;
-                if (isPrimeOrder && plugin.GetExtension<CarrierPluginExt>().UsrUseForPrimeOrders != true) continue;
+                if (isPrimeOrder != plugin.GetExtension<CarrierPluginExt>().UsrUseForPrimeOrders.GetValueOrDefault()) continue;
                 
                 ICarrierService cs = CarrierPluginMaint.CreateCarrierService(Base, plugin);
                 CarrierRequest cr = (CarrierRequest) buildQuoteRequestMethod.Invoke(carrierRatesExt, new object[] { carrierRatesExt.Documents.Cache.GetExtension<PX.Objects.SO.GraphExtensions.CarrierRates.Document>(shiporder), plugin });
@@ -131,7 +138,7 @@ namespace ShoebaccaProj
                     string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString() + " Amount: " + rate.Amount.ToString();
 
                     if (!rate.IsSuccess) continue;
-                    if (deliverBy == null || deliverBy >= rate.DeliveryDate)
+                    if (guaranteedDelivery && deliverBy >= rate.DeliveryDate)
                     {
                         if (amount == null || rate.Amount < amount || (rate.Amount == amount && rate.DeliveryDate < leastExpensiveShipViaDeliveryDate))
                         {

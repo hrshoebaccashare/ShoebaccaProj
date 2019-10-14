@@ -20,8 +20,18 @@ namespace ShoebaccaProj
         #region UsrDeliverByDate
         [PXDBDate]
         [PXUIField(DisplayName = "Deliver By")]
+        [PXUIRequired(typeof(Where<usrGuaranteedDelivery, Equal<True>>))]
+        [PXDefault(PersistingCheck = PXPersistingCheck.Nothing)]
         public DateTime? UsrDeliverByDate { get; set; }
         public abstract class usrDeliverByDate : PX.Data.BQL.BqlDateTime.Field<usrDeliverByDate> { }
+        #endregion
+
+        #region UsrGuaranteedDelivery
+        [PXDBBool]
+        [PXUIField(DisplayName = "Guaranteed")]
+        [PXDefault(false, PersistingCheck = PXPersistingCheck.Nothing)]
+        public bool? UsrGuaranteedDelivery { get; set; }
+        public abstract class usrGuaranteedDelivery : PX.Data.BQL.BqlBool.Field<usrGuaranteedDelivery> { }
         #endregion
 
         #region UsrISPrimeOrder

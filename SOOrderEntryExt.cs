@@ -359,7 +359,7 @@ namespace ShoebaccaProj
                         sw.Start();
 
                         var orderExt = order.GetExtension<SOOrderExt>();
-                        AssignSiteToOpenStockItems(orderEntryGraph, SelectLeastExpensiveShipWarehouse(sitesThatCanShipComplete, orderExt.UsrDeliverByDate));
+                        AssignSiteToOpenStockItems(orderEntryGraph, SelectLeastExpensiveShipWarehouse(sitesThatCanShipComplete, orderExt.UsrDeliverByDate, orderExt.UsrGuaranteedDelivery.GetValueOrDefault()));
 
                         sw.Stop();
                         PXTrace.WriteInformation($"Rate shopping took {sw.ElapsedMilliseconds}ms");
@@ -378,7 +378,7 @@ namespace ShoebaccaProj
             }
         }
 
-        private int SelectLeastExpensiveShipWarehouse(IEnumerable<int> sites, DateTime? deliverBy)
+        private int SelectLeastExpensiveShipWarehouse(IEnumerable<int> sites, DateTime? deliverBy, bool guaranteedDelivery)
         {
             var carrierRatesExt = Base.GetExtension<SOOrderEntry.CarrierRates>();
             var rateShoppingExt = Base.GetExtension<SOCarrierRateShoppingExt>();
@@ -425,7 +425,7 @@ namespace ShoebaccaProj
                         string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + (rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString()) + " Amount: " + rate.Amount.ToString();
 
                         if (!rate.IsSuccess) continue;
-                        if(deliverBy == null || deliverBy >= rate.DeliveryDate)
+                        if(!guaranteedDelivery && deliverBy >= rate.DeliveryDate)
                         {
                             if (amount == null || rate.Amount < amount)
                             {
