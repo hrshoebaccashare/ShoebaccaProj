@@ -425,7 +425,7 @@ namespace ShoebaccaProj
                         string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + (rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString()) + " Amount: " + rate.Amount.ToString();
 
                         if (!rate.IsSuccess) continue;
-                        if(!guaranteedDelivery && deliverBy >= rate.DeliveryDate)
+                        if(guaranteedDelivery == false || deliverBy >= rate.DeliveryDate)
                         {
                             if (amount == null || rate.Amount < amount)
                             {
