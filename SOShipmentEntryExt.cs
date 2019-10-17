@@ -27,6 +27,38 @@ namespace ShoebaccaProj
 
 		public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>> OrderShipment;
 
+        protected virtual void SOShipment_RowPersisting(PXCache cache, PXRowPersistingEventArgs e, PXRowPersisting baseMethod)
+        {
+            baseMethod(cache, e);
+
+            SOShipment row = e.Row as SOShipment;
+            if (row != null && e.Operation == PXDBOperation.Insert)
+            {
+                SOShipmentExt shipmentExt = row.GetExtension<SOShipmentExt>();               
+                foreach (PXResult<SOOrderShipment, SOOrder> result in Base.OrderList.Select())
+                {
+                    var order = (SOOrder)result;
+                    var orderExt = order.GetExtension<SOOrderExt>();
+
+                    // As soon as we encounter an order marked Prime, we consider the shipment to be an Amazon Prime shipment.
+                    if(orderExt.UsrISPrimeOrder == true)
+                    {
+                        shipmentExt.UsrISPrimeOrder = true;
+                    }
+
+                    if(shipmentExt.UsrDeliverByDate == null || orderExt.UsrDeliverByDate < shipmentExt.UsrDeliverByDate)
+                    {
+                        shipmentExt.UsrDeliverByDate = orderExt.UsrDeliverByDate;
+                    }
+                    
+                    if(orderExt.UsrGuaranteedDelivery == true)
+                    {
+                        shipmentExt.UsrGuaranteedDelivery = true;
+                    }
+                }
+            }
+        }
+
         [PXOverride]
         public void ShipPackages(SOShipment shiporder, Action<SOShipment> baseMethod)
         {
@@ -73,31 +105,7 @@ namespace ShoebaccaProj
         {
             PXTrace.WriteInformation("Starting rate shopping.");
 
-            DateTime? deliverBy = null;
-            bool guaranteedDelivery = false;
-            bool isPrimeOrder = false;
-            foreach (PXResult<SOOrderShipment, SOOrder, CurrencyInfo, SOAddress, SOContact> result in Base.OrderList.Select())
-            {
-                var order = (SOOrder)result;
-                var orderExt = order.GetExtension<SOOrderExt>();
-                if (orderExt.UsrDeliverByDate < deliverBy || deliverBy == null)
-                {
-                    //If there's more than one order linked to this shipment, we keep the earliest delivery by date
-                    deliverBy = orderExt.UsrDeliverByDate;
-                }
-
-                if(orderExt.UsrGuaranteedDelivery == true)
-                {
-                    guaranteedDelivery = true;
-                }
-                
-                //Note: the existing Kensium ABS customization has the UsrISPrimeOrder flag in the shipment too, and it's passed from the SO to the Shipment. We're not using it.
-                if(orderExt.UsrISPrimeOrder == true)
-                {
-                    PXTrace.WriteInformation("This shipment is for a prime order.");
-                    isPrimeOrder = true;
-                }
-            }
+            var shipmentExt = shiporder.GetExtension<SOShipmentExt>();
 
             List<CarrierRequestInfo> requests = new List<CarrierRequestInfo>();
             var plugins = GetCarrierPluginsForAutoRateShopping();
@@ -109,7 +117,7 @@ namespace ShoebaccaProj
             {
                 //Skip if carrier plugin is specific to a site
                 if (plugin.SiteID != null && plugin.SiteID != shiporder.SiteID) continue;
-                if (isPrimeOrder != plugin.GetExtension<CarrierPluginExt>().UsrUseForPrimeOrders.GetValueOrDefault()) continue;
+                if (shipmentExt.UsrISPrimeOrder.GetValueOrDefault() != plugin.GetExtension<CarrierPluginExt>().UsrUseForPrimeOrders.GetValueOrDefault()) continue;
                 
                 ICarrierService cs = CarrierPluginMaint.CreateCarrierService(Base, plugin);
                 CarrierRequest cr = (CarrierRequest) buildQuoteRequestMethod.Invoke(carrierRatesExt, new object[] { carrierRatesExt.Documents.Cache.GetExtension<PX.Objects.SO.GraphExtensions.CarrierRates.Document>(shiporder), plugin });
@@ -138,7 +146,7 @@ namespace ShoebaccaProj
                     string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString() + " Amount: " + rate.Amount.ToString();
 
                     if (!rate.IsSuccess) continue;
-                    if (guaranteedDelivery == false || deliverBy >= rate.DeliveryDate)
+                    if (shipmentExt.UsrGuaranteedDelivery.GetValueOrDefault() == false || shipmentExt.UsrDeliverByDate >= rate.DeliveryDate)
                     {
                         if (amount == null || rate.Amount < amount || (rate.Amount == amount && rate.DeliveryDate < leastExpensiveShipViaDeliveryDate))
                         {

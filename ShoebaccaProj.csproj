@@ -65,6 +65,7 @@
     <Compile Include="CalendarHelper.cs" />
     <Compile Include="CarrierRequestInfo.cs" />
     <Compile Include="DAC\CarrierPluginExt.cs" />
+    <Compile Include="DAC\SOShipmentExt.cs" />
     <Compile Include="DAC\CSAttributeGroupExt.cs" />
     <Compile Include="DAC\CSCalendarExt.cs" />
     <Compile Include="DAC\INSetupExt.cs" />
