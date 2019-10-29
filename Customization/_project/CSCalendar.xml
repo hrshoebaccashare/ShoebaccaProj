@@ -1,0 +1,9 @@
+﻿<Table TableName="CSCalendar">
+    <Column TableName="CSCalendar" ColumnName="UsrSunCutoffTime" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="CSCalendar" ColumnName="UsrMonCutoffTime" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="CSCalendar" ColumnName="UsrTueCutoffTime" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="CSCalendar" ColumnName="UsrWedCutoffTime" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="CSCalendar" ColumnName="UsrThuCutoffTime" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="CSCalendar" ColumnName="UsrFriCutoffTime" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="CSCalendar" ColumnName="UsrSatCutoffTime" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+</Table>

@@ -1,0 +1,6 @@
+﻿<Table TableName="SOOrder">
+    <Column TableName="SOOrder" ColumnName="UsrOrderPlacedTimestamp" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="SOOrder" ColumnName="UsrDeliverByDate" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="SOOrder" ColumnName="UsrISPrimeOrder" ColumnType="bool" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="SOOrder" ColumnName="UsrGuaranteedDelivery" ColumnType="bool" AllowNull="True" MaxLength="25" DecimalPrecision="2" IsNewColumn="True" IsUnicode="True" />
+</Table>

@@ -1,0 +1,107 @@
+﻿<Page path="~/pages/cs/cs209000.aspx" pageSource="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">
+    <PXTabItem Text="Calendar Settings" ParentId="phG_tab_Items#0" TypeFullName="PX.Web.UI.PXTabItem">
+        <Children Key="Template">
+            <AddItem>
+                <PXLayoutRule TypeFullName="PX.Web.UI.PXLayoutRule">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="StartColumn" Value="True" />
+                    <Prop Key="LabelsWidth" Value="XXS" />
+                    <Prop Key="ControlSize" Value="XXS" />
+                    <Children Key="Controls" />
+                </PXLayoutRule>
+            </AddItem>
+            <AddItem>
+                <PXLabel TypeFullName="PX.Web.UI.PXLabel">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="LL4" />
+                    <Prop Key="Text" Value="Cutoff time " />
+                    <Children Key="Controls" />
+                </PXLabel>
+            </AddItem>
+            <AddItem>
+                <PXDateTimeEdit TypeFullName="PX.Web.UI.PXDateTimeEdit">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="edSunCutoffTime" />
+                    <Prop Key="EditFormat" Value="t" />
+                    <Prop Key="DisplayFormat" Value="t" />
+                    <Prop Key="TimeMode" Value="True" />
+                    <Prop Key="SuppressLabel" Value="True" />
+                    <Prop Key="Size" Value="s" />
+                    <Prop Key="DataField" Value="UsrSunCutoffTime" />
+                </PXDateTimeEdit>
+            </AddItem>
+            <AddItem>
+                <PXDateTimeEdit TypeFullName="PX.Web.UI.PXDateTimeEdit">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="edMonCutoffTime" />
+                    <Prop Key="EditFormat" Value="t" />
+                    <Prop Key="DisplayFormat" Value="t" />
+                    <Prop Key="TimeMode" Value="True" />
+                    <Prop Key="SuppressLabel" Value="True" />
+                    <Prop Key="Size" Value="s" />
+                    <Prop Key="DataField" Value="UsrMonCutoffTime" />
+                </PXDateTimeEdit>
+            </AddItem>
+            <AddItem>
+                <PXDateTimeEdit TypeFullName="PX.Web.UI.PXDateTimeEdit">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="edTueCutoffTime" />
+                    <Prop Key="EditFormat" Value="t" />
+                    <Prop Key="DisplayFormat" Value="t" />
+                    <Prop Key="TimeMode" Value="True" />
+                    <Prop Key="SuppressLabel" Value="True" />
+                    <Prop Key="Size" Value="s" />
+                    <Prop Key="DataField" Value="UsrTueCutoffTime" />
+                </PXDateTimeEdit>
+            </AddItem>
+            <AddItem>
+                <PXDateTimeEdit TypeFullName="PX.Web.UI.PXDateTimeEdit">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="edWedCutoffTime" />
+                    <Prop Key="EditFormat" Value="t" />
+                    <Prop Key="DisplayFormat" Value="t" />
+                    <Prop Key="TimeMode" Value="True" />
+                    <Prop Key="SuppressLabel" Value="True" />
+                    <Prop Key="Size" Value="s" />
+                    <Prop Key="DataField" Value="UsrWedCutoffTime" />
+                </PXDateTimeEdit>
+            </AddItem>
+            <AddItem>
+                <PXDateTimeEdit TypeFullName="PX.Web.UI.PXDateTimeEdit">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="edThuCutoffTime" />
+                    <Prop Key="EditFormat" Value="t" />
+                    <Prop Key="DisplayFormat" Value="t" />
+                    <Prop Key="TimeMode" Value="True" />
+                    <Prop Key="SuppressLabel" Value="True" />
+                    <Prop Key="Size" Value="s" />
+                    <Prop Key="DataField" Value="UsrThuCutoffTime" />
+                </PXDateTimeEdit>
+            </AddItem>
+            <AddItem>
+                <PXDateTimeEdit TypeFullName="PX.Web.UI.PXDateTimeEdit">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="edFriCutoffTime" />
+                    <Prop Key="EditFormat" Value="t" />
+                    <Prop Key="DisplayFormat" Value="t" />
+                    <Prop Key="TimeMode" Value="True" />
+                    <Prop Key="SuppressLabel" Value="True" />
+                    <Prop Key="Size" Value="s" />
+                    <Prop Key="DataField" Value="UsrFriCutoffTime" />
+                </PXDateTimeEdit>
+            </AddItem>
+            <AddItem>
+                <PXDateTimeEdit TypeFullName="PX.Web.UI.PXDateTimeEdit">
+                    <Prop Key="Virtual:ApplyStylesheetSkin" />
+                    <Prop Key="ID" Value="edSatCutoffTime" />
+                    <Prop Key="EditFormat" Value="t" />
+                    <Prop Key="DisplayFormat" Value="t" />
+                    <Prop Key="TimeMode" Value="True" />
+                    <Prop Key="SuppressLabel" Value="True" />
+                    <Prop Key="Size" Value="s" />
+                    <Prop Key="DataField" Value="UsrSatCutoffTime" />
+                </PXDateTimeEdit>
+            </AddItem>
+        </Children>
+    </PXTabItem>
+</Page>

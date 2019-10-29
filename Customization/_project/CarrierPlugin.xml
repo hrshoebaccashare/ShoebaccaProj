@@ -1,0 +1,4 @@
+﻿<Table TableName="CarrierPlugin">
+    <Column TableName="CarrierPlugin" ColumnName="UsrUseForAutoRateShopping" ColumnType="bool" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="CarrierPlugin" ColumnName="UsrUseForPrimeOrders" ColumnType="bool" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+</Table>
