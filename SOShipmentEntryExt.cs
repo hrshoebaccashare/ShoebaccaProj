@@ -27,7 +27,7 @@ namespace ShoebaccaProj
 
 		public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>> OrderShipment;
 
-        protected virtual void SOShipment_RowPersisting(PXCache cache, PXRowPersistingEventArgs e, PXRowPersisting baseMethod)
+        protected void SOShipment_RowPersisting(PXCache cache, PXRowPersistingEventArgs e, PXRowPersisting baseMethod)
         {
             baseMethod(cache, e);
 
@@ -56,6 +56,19 @@ namespace ShoebaccaProj
                         shipmentExt.UsrGuaranteedDelivery = true;
                     }
                 }
+            }
+        }
+
+        protected void SOShipment_PickListPrinted_FieldUpdated(PXCache sender, PXFieldUpdatedEventArgs e)
+        {
+            var shipment = (SOShipment)e.Row;
+            if(shipment.PickListPrinted == true)
+            {
+                sender.SetValueExt<SOShipmentExt.usrPickListPrintedDate>(shipment, DateTime.Now);
+            }
+            else
+            {
+                sender.SetValueExt<SOShipmentExt.usrPickListPrintedDate>(shipment, null);
             }
         }
 

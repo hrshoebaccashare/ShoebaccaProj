@@ -2,4 +2,5 @@
     <Column TableName="SOShipment" ColumnName="UsrDeliverByDate" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
     <Column TableName="SOShipment" ColumnName="UsrGuaranteedDelivery" ColumnType="bool" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
     <Column TableName="SOShipment" ColumnName="UsrISPrimeOrder" ColumnType="bool" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="SOShipment" ColumnName="UsrPickListPrintedDate" ColumnType="date" AllowNull="True" DecimalPrecision="0" DecimalLength="0" IsNewColumn="True" IsUnicode="True" />
 </Table>
