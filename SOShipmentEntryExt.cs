@@ -124,7 +124,7 @@ namespace ShoebaccaProj
             var plugins = GetCarrierPluginsForAutoRateShopping();
 
             var carrierRatesExt = Base.GetExtension<SOShipmentEntry.CarrierRates>();
-            MethodInfo buildQuoteRequestMethod = carrierRatesExt.GetType().GetMethod("BuildQuoteRequest", BindingFlags.NonPublic | BindingFlags.Instance); //Unfortunately not exposed by SOShipmentEntry.CarrierRates...
+            MethodInfo buildQuoteRequestMethod = carrierRatesExt.GetType().GetMethod("BuildQuoteRequest", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public); //Unfortunately not exposed by SOShipmentEntry.CarrierRates...
 
             foreach (CarrierPlugin plugin in plugins)
             {
