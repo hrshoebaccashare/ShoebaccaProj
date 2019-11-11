@@ -119,9 +119,44 @@ namespace ShoebaccaProj
                                         PXProcessing<SOOrder>.SetCurrentItem(order);
                                     }
 
+                                    SOOrder ordercopy = (SOOrder)Base.Caches[typeof(SOOrder)].CreateCopy(order);
                                     try
                                     {
                                         ReviewWarehouseAvailability(ordgraph, order);
+                                    }
+                                    catch(SOShipmentException ex)
+                                    {
+                                        Base.Caches[typeof(SOOrder)].RestoreCopy(order, ordercopy);
+                                        if (!adapter.MassProcess)
+                                        {
+                                            throw;
+                                        }
+
+                                        order.LastShipDate = filter.ShipDate;
+                                        order.Status = SOOrderStatus.Shipping; //Automation will set the order to back order since no shipments were created
+
+                                        docgraph.Clear();
+
+                                        var ordergraph = PXGraph.CreateInstance<SOOrderEntry>();
+                                        ordergraph.Clear();
+
+                                        ordergraph.Document.Cache.MarkUpdated(order);
+                                        PXAutomation.CompleteSimple(ordergraph.Document.View);
+                                        try
+                                        {
+                                            ordergraph.Save.Press();
+                                            PXAutomation.RemovePersisted(ordergraph, order);
+
+                                            PXTrace.WriteInformation(ex);
+                                            PXProcessing<SOOrder>.SetWarning(ex);
+                                        }
+                                        catch (Exception inner)
+                                        {
+                                            Base.Caches[typeof(SOOrder)].RestoreCopy(order, ordercopy);
+                                            PXProcessing<SOOrder>.SetError(inner);
+                                            anyfailed = true;
+                                        }
+                                        continue; //Stop there for this order
                                     }
                                     catch (Exception ex)
                                     {
@@ -150,7 +185,7 @@ namespace ShoebaccaProj
 
                                     foreach (int? SiteID in sites)
                                     {
-                                        SOOrder ordercopy = (SOOrder)Base.Caches[typeof(SOOrder)].CreateCopy(order);
+                                        ordercopy = (SOOrder)Base.Caches[typeof(SOOrder)].CreateCopy(order);
                                         try
                                         {
                                             using (var ts = new PXTransactionScope())
@@ -333,6 +368,11 @@ namespace ShoebaccaProj
                                     line.POCreate = true;
                                     line.POSource = INReplenishmentSource.DropShipToOrder;
                                     orderEntryGraph.Transactions.Update(line);
+                                }
+                                else if (order.ShipComplete == SOShipComplete.ShipComplete)
+                                {
+                                    //If order is set to ShipComplete, we don't want to make ANY shipment to give the opportunity for a manual review of the order (and potentially replenish from NAFTA warehouse...)
+                                    throw new SOShipmentException("Order can't be dropshipped or shipped in full.");
                                 }
                             }
                         }

@@ -34,5 +34,12 @@ namespace ShoebaccaProj
         public bool? UsrISPrimeOrder { get; set; }
         public abstract class usrISPrimeOrder : IBqlField { }
         #endregion
+
+        #region UsrPickListPrintedDate
+        [PXDBDateAndTime]
+        [PXUIField(DisplayName = "Pick List Printed Date", Enabled = false, IsReadOnly = true)]
+        public DateTime? UsrPickListPrintedDate { get; set; }
+        public abstract class usrPickListPrintedDate : PX.Data.BQL.BqlDateTime.Field<usrPickListPrintedDate> { }
+        #endregion
     }
 }
