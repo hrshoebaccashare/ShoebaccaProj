@@ -156,24 +156,37 @@ namespace ShoebaccaProj
                 if (!request.Result.IsSuccess) continue;
                 foreach (var rate in request.Result.Result)
                 {
-                    string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString() + " Amount: " + rate.Amount.ToString();
+                    string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + (rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString()) + " Amount: " + rate.Amount.ToString();
 
-                    if (!rate.IsSuccess) continue;
-                    if (shipmentExt.UsrGuaranteedDelivery.GetValueOrDefault() == false || shipmentExt.UsrDeliverByDate >= rate.DeliveryDate)
+                    if (rate.IsSuccess)
                     {
-                        if (amount == null || rate.Amount < amount || (rate.Amount == amount && rate.DeliveryDate < leastExpensiveShipViaDeliveryDate))
+                        if (shipmentExt.UsrGuaranteedDelivery.GetValueOrDefault() == false || shipmentExt.UsrDeliverByDate >= rate.DeliveryDate)
                         {
-                            leastExpensiveCarrier = request.Plugin.CarrierPluginID;
-                            leastExpensiveMethod = rate.Method.Code;
-                            amount = rate.Amount;
+                            if (amount == null || rate.Amount < amount || (rate.Amount == amount && rate.DeliveryDate < leastExpensiveShipViaDeliveryDate))
+                            {
+                                leastExpensiveCarrier = request.Plugin.CarrierPluginID;
+                                leastExpensiveMethod = rate.Method.Code;
+                                amount = rate.Amount;
+                            }
+                        }
+                        else
+                        {
+                            traceMessage += " [TOO LATE]";
                         }
                     }
                     else
                     {
-                        traceMessage += " [TOO LATE]";
+                        if(rate.Messages.Count > 0)
+                        { 
+                            traceMessage += " [FAILED: " + rate.Messages[0].Description + "]";
+                        }
+                        else
+                        {
+                            traceMessage += " [FAILED WITH NO ERROR MESSAGE]";
+                        }
                     }
 
-                    PXTrace.WriteVerbose(traceMessage);
+                    PXTrace.WriteInformation(traceMessage);
                 }
             }
 
