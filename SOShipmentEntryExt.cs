@@ -150,20 +150,24 @@ namespace ShoebaccaProj
             string leastExpensiveMethod = null;
             DateTime? leastExpensiveShipViaDeliveryDate = null;
             decimal? amount = null;
-            
+
+            //We're comparing with a date/time value returned by the carrier; anything delivered on the UsrDeliverByDate meets the SLA
+            DateTime? deliverByDateTime = shipmentExt.UsrDeliverByDate == null ? null : new DateTime?(shipmentExt.UsrDeliverByDate.Value.Date.Add(new TimeSpan(23, 59, 59)));
+
             foreach (var request in requests)
             {
                 if (!request.Result.IsSuccess) continue;
                 foreach (var rate in request.Result.Result)
                 {
                     string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + (rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString()) + " Amount: " + rate.Amount.ToString();
-
+                    
                     if (rate.IsSuccess)
                     {
-                        if (shipmentExt.UsrGuaranteedDelivery.GetValueOrDefault() == false || shipmentExt.UsrDeliverByDate >= rate.DeliveryDate)
+                        if (shipmentExt.UsrGuaranteedDelivery.GetValueOrDefault() == false || deliverByDateTime >= rate.DeliveryDate)
                         {
                             if (amount == null || rate.Amount < amount || (rate.Amount == amount && rate.DeliveryDate < leastExpensiveShipViaDeliveryDate))
                             {
+                                leastExpensiveShipViaDeliveryDate = rate.DeliveryDate;
                                 leastExpensiveCarrier = request.Plugin.CarrierPluginID;
                                 leastExpensiveMethod = rate.Method.Code;
                                 amount = rate.Amount;

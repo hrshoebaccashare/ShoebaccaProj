@@ -456,6 +456,9 @@ namespace ShoebaccaProj
                 int? leastExpensiveSiteID = null;
                 decimal? amount = null;
 
+                //We're comparing with a date/time value returned by the carrier; anything delivered on the UsrDeliverByDate meets the SLA
+                DateTime? deliverByDateTime = deliverBy == null ? null : new DateTime?(deliverBy.Value.Date.Add(new TimeSpan(23, 59, 59)));
+
                 Random rand = new Random();
                 foreach (var request in requests)
                 {
@@ -465,7 +468,7 @@ namespace ShoebaccaProj
                         string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + (rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString()) + " Amount: " + rate.Amount.ToString();
 
                         if (!rate.IsSuccess) continue;
-                        if(guaranteedDelivery == false || deliverBy >= rate.DeliveryDate)
+                        if(guaranteedDelivery == false || deliverByDateTime >= rate.DeliveryDate)
                         {
                             if (amount == null || rate.Amount < amount)
                             {
