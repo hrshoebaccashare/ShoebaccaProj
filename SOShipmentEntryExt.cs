@@ -19,13 +19,13 @@ using PX.Objects.CM;
 
 namespace ShoebaccaProj
 {
-	public class SOShipmentEntryExt : PXGraphExtension<SOShipmentEntry>
-	{
-		public PXSelect<SOPackageDetail,
-			Where<SOPackageDetail.shipmentNbr, Equal<Required<SOPackageDetail.shipmentNbr>>>,
-			OrderBy<Asc<SOPackageDetail.lineNbr>>> FirstTrackingNumber;
+    public class SOShipmentEntryExt : PXGraphExtension<SOShipmentEntry>
+    {
+        public PXSelect<SOPackageDetail,
+            Where<SOPackageDetail.shipmentNbr, Equal<Required<SOPackageDetail.shipmentNbr>>>,
+            OrderBy<Asc<SOPackageDetail.lineNbr>>> FirstTrackingNumber;
 
-		public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>> OrderShipment;
+        public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>> OrderShipment;
 
         protected void SOShipment_RowPersisting(PXCache cache, PXRowPersistingEventArgs e, PXRowPersisting baseMethod)
         {
@@ -34,24 +34,24 @@ namespace ShoebaccaProj
             SOShipment row = e.Row as SOShipment;
             if (row != null && e.Operation == PXDBOperation.Insert)
             {
-                SOShipmentExt shipmentExt = row.GetExtension<SOShipmentExt>();               
+                SOShipmentExt shipmentExt = row.GetExtension<SOShipmentExt>();
                 foreach (PXResult<SOOrderShipment, SOOrder> result in Base.OrderList.Select())
                 {
                     var order = (SOOrder)result;
                     var orderExt = order.GetExtension<SOOrderExt>();
 
                     // As soon as we encounter an order marked Prime, we consider the shipment to be an Amazon Prime shipment.
-                    if(orderExt.UsrISPrimeOrder == true)
+                    if (orderExt.UsrISPrimeOrder == true)
                     {
                         shipmentExt.UsrISPrimeOrder = true;
                     }
 
-                    if(shipmentExt.UsrDeliverByDate == null || orderExt.UsrDeliverByDate < shipmentExt.UsrDeliverByDate)
+                    if (shipmentExt.UsrDeliverByDate == null || orderExt.UsrDeliverByDate < shipmentExt.UsrDeliverByDate)
                     {
                         shipmentExt.UsrDeliverByDate = orderExt.UsrDeliverByDate;
                     }
-                    
-                    if(orderExt.UsrGuaranteedDelivery == true)
+
+                    if (orderExt.UsrGuaranteedDelivery == true)
                     {
                         shipmentExt.UsrGuaranteedDelivery = true;
                     }
@@ -62,7 +62,7 @@ namespace ShoebaccaProj
         protected void SOShipment_PickListPrinted_FieldUpdated(PXCache sender, PXFieldUpdatedEventArgs e)
         {
             var shipment = (SOShipment)e.Row;
-            if(shipment.PickListPrinted == true)
+            if (shipment.PickListPrinted == true)
             {
                 sender.SetValueExt<SOShipmentExt.usrPickListPrintedDate>(shipment, DateTime.Now);
             }
@@ -81,11 +81,11 @@ namespace ShoebaccaProj
                 {
                     Base.Clear();
                     Base.Document.Current = Base.Document.Search<SOShipment.shipmentNbr>(shiporder.ShipmentNbr);
-                    
+
                     SOPackageDetail p = Base.Packages.SelectSingle();
                     if (p == null) throw new PXException(PX.Objects.SO.Messages.PackageIsRequired);
-                    
-                    SelectLeastExpensiveShipVia(shiporder);
+
+                    SelectLeastExpensiveShipVia();
                 }
                 else
                 {
@@ -93,32 +93,33 @@ namespace ShoebaccaProj
                 }
             }
 
-            baseMethod(shiporder);
+            baseMethod(Base.Document.Current);
         }
 
         [PXOverride]
-		public void ConfirmShipment(SOOrderEntry docgraph, SOShipment shiporder, Action<SOOrderEntry, SOShipment> baseMethod)
-		{
+        public void ConfirmShipment(SOOrderEntry docgraph, SOShipment shiporder, Action<SOOrderEntry, SOShipment> baseMethod)
+        {
             baseMethod(docgraph, shiporder);
 
-			SOPackageDetail TNbr = FirstTrackingNumber.Select(shiporder.ShipmentNbr);
-			if (TNbr != null)
-			{
-				SOOrderShipment ShipNbr = OrderShipment.Select(shiporder.ShipmentNbr);
-				if (ShipNbr != null)
-				{
-					ShipNbr.GetExtension<SOOrderShipmentExt>().UsrShipmentTrackingNbr = TNbr.TrackNumber;
-					OrderShipment.Cache.Update(ShipNbr);
-					Base.Save.Press();
-				}
-			}
-		}
+            SOPackageDetail TNbr = FirstTrackingNumber.Select(shiporder.ShipmentNbr);
+            if (TNbr != null)
+            {
+                SOOrderShipment ShipNbr = OrderShipment.Select(shiporder.ShipmentNbr);
+                if (ShipNbr != null)
+                {
+                    ShipNbr.GetExtension<SOOrderShipmentExt>().UsrShipmentTrackingNbr = TNbr.TrackNumber;
+                    OrderShipment.Cache.Update(ShipNbr);
+                    Base.Save.Press();
+                }
+            }
+        }
 
-        private void SelectLeastExpensiveShipVia(SOShipment shiporder)
+        private void SelectLeastExpensiveShipVia()
         {
             PXTrace.WriteInformation("Starting rate shopping.");
 
-            var shipmentExt = shiporder.GetExtension<SOShipmentExt>();
+            var shipment = Base.Document.Current;
+            var shipmentExt = shipment.GetExtension<SOShipmentExt>();
 
             List<CarrierRequestInfo> requests = new List<CarrierRequestInfo>();
             var plugins = GetCarrierPluginsForAutoRateShopping();
@@ -129,16 +130,16 @@ namespace ShoebaccaProj
             foreach (CarrierPlugin plugin in plugins)
             {
                 //Skip if carrier plugin is specific to a site
-                if (plugin.SiteID != null && plugin.SiteID != shiporder.SiteID) continue;
+                if (plugin.SiteID != null && plugin.SiteID != shipment.SiteID) continue;
                 if (shipmentExt.UsrISPrimeOrder.GetValueOrDefault() != plugin.GetExtension<CarrierPluginExt>().UsrUseForPrimeOrders.GetValueOrDefault()) continue;
-                
+
                 ICarrierService cs = CarrierPluginMaint.CreateCarrierService(Base, plugin);
-                CarrierRequest cr = (CarrierRequest) buildQuoteRequestMethod.Invoke(carrierRatesExt, new object[] { carrierRatesExt.Documents.Cache.GetExtension<PX.Objects.SO.GraphExtensions.CarrierRates.Document>(shiporder), plugin });
+                CarrierRequest cr = (CarrierRequest)buildQuoteRequestMethod.Invoke(carrierRatesExt, new object[] { carrierRatesExt.Documents.Cache.GetExtension<PX.Objects.SO.GraphExtensions.CarrierRates.Document>(shipment), plugin });
 
                 requests.Add(new CarrierRequestInfo
                 {
                     Plugin = plugin,
-                    SiteID = shiporder.SiteID.Value,
+                    SiteID = shipment.SiteID.Value,
                     Service = cs,
                     Request = cr
                 });
@@ -160,7 +161,7 @@ namespace ShoebaccaProj
                 foreach (var rate in request.Result.Result)
                 {
                     string traceMessage = "Site: " + request.SiteID + " Carrier:" + request.Plugin.Description + " Method: " + rate.Method + " Delivery Date: " + (rate.DeliveryDate == null ? "" : rate.DeliveryDate.ToString()) + " Amount: " + rate.Amount.ToString();
-                    
+
                     if (rate.IsSuccess)
                     {
                         if (shipmentExt.UsrGuaranteedDelivery.GetValueOrDefault() == false || deliverByDateTime >= rate.DeliveryDate)
@@ -180,8 +181,8 @@ namespace ShoebaccaProj
                     }
                     else
                     {
-                        if(rate.Messages.Count > 0)
-                        { 
+                        if (rate.Messages.Count > 0)
+                        {
                             traceMessage += " [FAILED: " + rate.Messages[0].Description + "]";
                         }
                         else
@@ -194,7 +195,7 @@ namespace ShoebaccaProj
                 }
             }
 
-            if(leastExpensiveCarrier == null)
+            if (leastExpensiveCarrier == null)
             {
                 throw new PXException(Messages.FailedToFindCarrierAndMethod);
             }
@@ -202,20 +203,17 @@ namespace ShoebaccaProj
             {
                 PXTrace.WriteInformation($"Least expensive carrier: {leastExpensiveCarrier} method: {leastExpensiveMethod} amount: {amount}");
 
-                var carrier = (Carrier) PXSelectReadonly<Carrier,
+                var carrier = (Carrier)PXSelectReadonly<Carrier,
                     Where<Carrier.carrierPluginID, Equal<Required<Carrier.carrierPluginID>>,
                     And<Carrier.pluginMethod, Equal<Required<Carrier.pluginMethod>>,
                     And<Carrier.isExternal, Equal<True>>>>>.Select(Base, leastExpensiveCarrier, leastExpensiveMethod);
 
-                if(carrier == null)
+                if (carrier == null)
                 {
                     throw new PXException(Messages.NoShipViaFound, leastExpensiveCarrier, leastExpensiveMethod);
                 }
                 else
                 {
-                    //Set new ShipVia so that existing logic can pick it up
-                    shiporder.ShipVia = carrier.CarrierID;
-
                     Base.Document.Current.ShipVia = carrier.CarrierID;
                     Base.Document.Update(Base.Document.Current);
                     Base.Document.Current.IsPackageValid = true; //Changing ShipVia will otherwise trigger package refresh
