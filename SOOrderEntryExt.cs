@@ -122,7 +122,10 @@ namespace ShoebaccaProj
                                     SOOrder ordercopy = (SOOrder)Base.Caches[typeof(SOOrder)].CreateCopy(order);
                                     try
                                     {
-                                        ReviewWarehouseAvailability(ordgraph, order);
+                                        if(operation == SOOperation.Issue)
+                                        { 
+                                            ReviewWarehouseAvailability(ordgraph, order);
+                                        }
                                     }
                                     catch(SOShipmentException ex)
                                     {
