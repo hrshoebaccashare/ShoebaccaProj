@@ -81,6 +81,7 @@ namespace ShoebaccaProj
                 {
                     Base.Clear();
                     Base.Document.Current = Base.Document.Search<SOShipment.shipmentNbr>(shiporder.ShipmentNbr);
+                    shiporder = Base.Document.Current;
 
                     SOPackageDetail p = Base.Packages.SelectSingle();
                     if (p == null) throw new PXException(PX.Objects.SO.Messages.PackageIsRequired);
@@ -93,7 +94,7 @@ namespace ShoebaccaProj
                 }
             }
 
-            baseMethod(Base.Document.Current);
+            baseMethod(shiporder);
         }
 
         [PXOverride]
