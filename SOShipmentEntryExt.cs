@@ -25,7 +25,8 @@ namespace ShoebaccaProj
             Where<SOPackageDetail.shipmentNbr, Equal<Required<SOPackageDetail.shipmentNbr>>>,
             OrderBy<Asc<SOPackageDetail.lineNbr>>> FirstTrackingNumber;
 
-        public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>> OrderShipment;
+        public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentType, Equal<Required<SOOrderShipment.shipmentType>>, 
+            And<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>>> OrderShipment;
 
         protected void SOShipment_RowPersisting(PXCache cache, PXRowPersistingEventArgs e, PXRowPersisting baseMethod)
         {
@@ -105,7 +106,7 @@ namespace ShoebaccaProj
             SOPackageDetail TNbr = FirstTrackingNumber.Select(shiporder.ShipmentNbr);
             if (TNbr != null)
             {
-                SOOrderShipment ShipNbr = OrderShipment.Select(shiporder.ShipmentNbr);
+                SOOrderShipment ShipNbr = OrderShipment.Select(shiporder.ShipmentType, shiporder.ShipmentNbr);
                 if (ShipNbr != null)
                 {
                     ShipNbr.GetExtension<SOOrderShipmentExt>().UsrShipmentTrackingNbr = TNbr.TrackNumber;
