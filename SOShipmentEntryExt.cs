@@ -25,7 +25,7 @@ namespace ShoebaccaProj
             Where<SOPackageDetail.shipmentNbr, Equal<Required<SOPackageDetail.shipmentNbr>>>,
             OrderBy<Asc<SOPackageDetail.lineNbr>>> FirstTrackingNumber;
 
-        public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentType, Equal<Required<SOOrderShipment.shipmentType>>, 
+        public PXSelect<SOOrderShipment, Where<SOOrderShipment.shipmentType, Equal<Required<SOOrderShipment.shipmentType>>,
             And<SOOrderShipment.shipmentNbr, Equal<Required<SOOrderShipment.shipmentNbr>>>>> OrderShipment;
 
         protected void SOShipment_RowPersisting(PXCache cache, PXRowPersistingEventArgs e, PXRowPersisting baseMethod)
@@ -95,7 +95,11 @@ namespace ShoebaccaProj
                 }
             }
 
+            var sw = new Stopwatch();
+            sw.Start();
             baseMethod(shiporder);
+            sw.Stop();
+            PXTrace.WriteInformation($"ShipPackages took {sw.ElapsedMilliseconds}ms.");
         }
 
         [PXOverride]
@@ -118,6 +122,8 @@ namespace ShoebaccaProj
 
         private void SelectLeastExpensiveShipVia()
         {
+            var sw = new Stopwatch();
+            sw.Start();
             PXTrace.WriteInformation("Starting rate shopping.");
 
             var shipment = Base.Document.Current;
@@ -203,7 +209,8 @@ namespace ShoebaccaProj
             }
             else
             {
-                PXTrace.WriteInformation($"Least expensive carrier: {leastExpensiveCarrier} method: {leastExpensiveMethod} amount: {amount}");
+                sw.Stop();
+                PXTrace.WriteInformation($"Rate shopping completed in {sw.ElapsedMilliseconds}ms. Least expensive carrier: {leastExpensiveCarrier} method: {leastExpensiveMethod} amount: {amount}");
 
                 var carrier = (Carrier)PXSelectReadonly<Carrier,
                     Where<Carrier.carrierPluginID, Equal<Required<Carrier.carrierPluginID>>,
